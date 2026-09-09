@@ -1,6 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+@theme {
+  --color-surface-base: rgb(var(--col-base));
+  --color-surface-panel: rgb(var(--col-panel));
+  --color-surface-alt: rgb(var(--col-alt));
+  --color-surface-dark: rgb(var(--col-dark));
+  
+  --color-ui-border: rgb(var(--col-border));
+  --color-ui-text: rgb(var(--col-text));
+  --color-ui-muted: rgb(var(--col-muted));
+  --color-ui-accent: rgb(var(--col-accent));
+  --color-ui-alert: rgb(var(--col-alert));
+  --color-ui-ok: rgb(var(--col-ok));
+
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}
 
 @layer base {
   :root {
