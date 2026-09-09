@@ -5,10 +5,10 @@ export const RedTeamAgent = () => {
   const isActive = appState === 'ATTACKING';
 
   return (
-    <div className="flex-1 bg-surface-panel relative flex flex-col overflow-hidden border border-ui-border/50 rounded-xl shadow-lg">
+    <div className="flex-1 bg-surface-panel relative flex flex-col overflow-hidden">
       <div className="crosshair-corner crosshair-tr"></div>
-      <div className="h-10 border-b border-ui-border/50 flex items-center px-4 bg-slate-800/50 shrink-0 rounded-t-xl border-t-2 border-t-purple-500/50">
-        <span className="font-mono text-xs font-bold text-purple-400">MODULE: RED_TEAM_AGENT</span>
+      <div className="h-10 border-b border-ui-border flex items-center px-4 bg-surface-alt shrink-0">
+        <span className="font-mono text-xs font-bold text-ui-muted">MODULE: RED_TEAM_AGENT</span>
       </div>
       <div className="flex-1 p-4 font-mono text-xs text-ui-text overflow-auto selectable flex flex-col">
         <div className="flex items-center gap-2 mb-4">

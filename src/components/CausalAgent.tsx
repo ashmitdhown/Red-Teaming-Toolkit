@@ -8,10 +8,10 @@ export const CausalAgent = () => {
   const showFindings = isGhost && appState === 'IDLE';
 
   return (
-    <div className="flex-[1.2] bg-surface-panel relative flex flex-col overflow-hidden border border-ui-border/50 rounded-xl shadow-lg">
-      <div className="h-10 border-b border-ui-border/50 flex items-center px-4 bg-slate-800/50 shrink-0 justify-between rounded-t-xl border-t-2 border-t-pink-500/50">
-        <span className="font-mono text-xs font-bold text-pink-400 flex items-center gap-2">
-          <svg className="w-3 h-3 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+    <div className="flex-[1.2] bg-surface-panel relative flex flex-col overflow-hidden">
+      <div className="h-10 border-b border-ui-border flex items-center px-4 bg-surface-alt shrink-0 justify-between">
+        <span className="font-mono text-xs font-bold text-ui-text flex items-center gap-2">
+          <svg className="w-3 h-3 text-ui-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
           "WHY DID THIS WORK?" AGENT
         </span>
       </div>

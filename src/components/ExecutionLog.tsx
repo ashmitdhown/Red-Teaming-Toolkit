@@ -11,10 +11,10 @@ export const ExecutionLog = () => {
   }, [logs]);
 
   return (
-    <div className="flex-1 bg-surface-panel relative flex flex-col min-h-0 border border-ui-border/50 rounded-xl shadow-lg">
-      <div className="h-10 border-b border-ui-border/50 flex items-center px-4 bg-slate-800/50 justify-between rounded-t-xl border-t-2 border-t-cyan-500/50">
-        <span className="font-mono text-xs font-bold text-cyan-400">EXECUTION_LOG</span>
-        <button onClick={clearLogs} className="font-mono text-[10px] text-cyan-300/50 hover:text-cyan-400 transition-colors">
+    <div className="flex-1 bg-surface-panel relative flex flex-col min-h-0">
+      <div className="h-10 border-b border-ui-border flex items-center px-4 bg-surface-alt justify-between">
+        <span className="font-mono text-xs font-bold text-ui-text">EXECUTION_LOG</span>
+        <button onClick={clearLogs} className="font-mono text-[10px] text-ui-muted hover:text-ui-text transition-colors">
           CLEAR
         </button>
       </div>

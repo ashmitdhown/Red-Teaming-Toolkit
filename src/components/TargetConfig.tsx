@@ -2,11 +2,11 @@ import React from 'react';
 
 export const TargetConfig = () => {
   return (
-    <div className="flex-1 bg-surface-panel relative flex flex-col overflow-hidden group border border-ui-border/50 rounded-xl shadow-lg">
+    <div className="flex-1 bg-surface-panel relative flex flex-col overflow-hidden group">
       <div className="crosshair-corner crosshair-tl"></div>
-      <div className="h-10 border-b border-ui-border/50 flex items-center px-4 bg-slate-800/50 shrink-0 justify-between rounded-t-xl border-t-2 border-t-blue-500/50">
-        <span className="font-mono text-xs font-bold text-blue-400">MODULE: TARGET_CONFIGURATION</span>
-        <span className="text-[9px] text-blue-300/70 border border-blue-500/30 px-1.5 py-0.5 bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity tracking-widest rounded">EDITABLE_BUFFER</span>
+      <div className="h-10 border-b border-ui-border flex items-center px-4 bg-surface-alt shrink-0 justify-between">
+        <span className="font-mono text-xs font-bold text-ui-muted">MODULE: TARGET_CONFIGURATION</span>
+        <span className="text-[9px] text-ui-muted border border-ui-border px-1.5 py-0.5 bg-surface-base opacity-0 group-hover:opacity-100 transition-opacity tracking-widest">EDITABLE_BUFFER</span>
       </div>
       <div className="flex-1 flex overflow-hidden bg-surface-base">
         {/* Line Numbers */}

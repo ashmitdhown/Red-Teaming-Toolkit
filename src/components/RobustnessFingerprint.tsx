@@ -15,9 +15,9 @@ export const RobustnessFingerprint = () => {
   const riskLevel = isGhost ? "— HIGH RISK" : "— MODERATE RISK";
 
   return (
-    <div className="flex-1 bg-surface-panel relative flex flex-col overflow-hidden border border-ui-border/50 rounded-xl shadow-lg">
-      <div className="h-10 border-b border-ui-border/50 flex items-center px-4 bg-slate-800/50 shrink-0 rounded-t-xl border-t-2 border-t-emerald-500/50">
-        <span className="font-mono text-xs font-bold text-emerald-400">MODEL ROBUSTNESS FINGERPRINT™</span>
+    <div className="flex-1 bg-surface-panel relative flex flex-col overflow-hidden">
+      <div className="h-10 border-b border-ui-border flex items-center px-4 bg-surface-alt shrink-0">
+        <span className="font-mono text-xs font-bold text-ui-text">MODEL ROBUSTNESS FINGERPRINT™</span>
       </div>
       <div className="flex-1 p-4 font-mono text-xs text-ui-text overflow-auto selectable">
         

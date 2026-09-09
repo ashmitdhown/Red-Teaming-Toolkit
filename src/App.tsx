@@ -13,23 +13,23 @@ function AppContent() {
     <div className="flex flex-col font-sans text-sm transition-colors duration-300 h-screen w-screen bg-surface-base text-ui-text">
       <Header />
       
-      <main className="flex-1 flex gap-4 p-4 overflow-hidden bg-surface-base">
+      <main className="flex-1 flex gap-[1px] p-[1px] overflow-hidden bg-ui-border">
         
-        <section className="flex-[1.8] flex flex-col gap-4 overflow-hidden lg:flex-[2.2]">
+        <section className="flex-[1.8] flex flex-col gap-[1px] overflow-hidden lg:flex-[2.2]">
           {/* TOP HALF */}
-          <div className="flex-[1] flex flex-row gap-4 min-h-0">
+          <div className="flex-[1] flex flex-row gap-[1px] min-h-0">
             <TargetConfig />
             <RedTeamAgent />
           </div>
 
           {/* BOTTOM HALF */}
-          <div className="flex-[1.2] flex flex-row gap-4 min-h-0">
+          <div className="flex-[1.2] flex flex-row gap-[1px] min-h-0">
             <RobustnessFingerprint />
             <CausalAgent />
           </div>
         </section>
 
-        <section className="flex-1 flex flex-col gap-4 overflow-hidden min-w-[340px]">
+        <section className="flex-1 flex flex-col gap-[1px] overflow-hidden min-w-[340px]">
           <TelemetryInspector />
           <ExecutionLog />
           <DispatcherControls />

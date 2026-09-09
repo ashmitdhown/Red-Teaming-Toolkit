@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
 export type LogType = 'info' | 'success' | 'alert';
@@ -32,7 +32,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [appState, setAppState] = useState<AppState>('IDLE');
   const [isGhost, setIsGhost] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -41,6 +41,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     latency: '42ms',
     integrity: 'NOMINAL',
   });
+
+  // Apply dark mode on mount
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
 
   const toggleTheme = () => {
     setIsDarkMode((prev) => !prev);

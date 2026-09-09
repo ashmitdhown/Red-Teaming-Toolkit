@@ -8,10 +8,10 @@ export const TelemetryInspector = () => {
   const percent = Math.min(jsdValue * 100, 100);
 
   return (
-    <div className="h-56 bg-surface-panel relative flex flex-col shrink-0 border border-ui-border/50 rounded-xl shadow-lg">
+    <div className="h-56 bg-surface-panel relative flex flex-col shrink-0">
       <div className="crosshair-corner crosshair-bl"></div>
-      <div className="h-10 border-b border-ui-border/50 flex items-center px-4 bg-slate-800/50 rounded-t-xl border-t-2 border-t-amber-500/50">
-        <span className="font-mono text-xs font-bold text-amber-400">TELEMETRY_INSPECTOR</span>
+      <div className="h-10 border-b border-ui-border flex items-center px-4 bg-surface-alt">
+        <span className="font-mono text-xs font-bold text-ui-text">TELEMETRY_INSPECTOR</span>
       </div>
       
       <div className="flex-1 p-5 flex flex-col justify-center">

@@ -50,7 +50,7 @@ export const DispatcherControls = () => {
   };
 
   return (
-    <div className="h-36 bg-surface-panel relative flex flex-col p-4 shrink-0 border border-ui-border/50 rounded-xl shadow-lg border-t-2 border-t-ui-text/50">
+    <div className="h-36 bg-surface-panel border-t-2 border-ui-text relative flex flex-col p-4 shrink-0">
       <span className="font-mono text-[10px] text-ui-muted mb-3 block uppercase tracking-wider">Dispatcher_Controls</span>
       <div className="grid grid-cols-2 gap-3 flex-1">
         <button
