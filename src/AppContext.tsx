@@ -75,6 +75,8 @@ interface AppContextType {
   clearLogs: () => void;
   metrics: { jsd: string; latency: string; integrity: string; };
   setMetrics: (metrics: any) => void;
+  baselinePosProb: number;
+  setBaselinePosProb: (prob: number) => void;
 
   // Target config
   targetType: TargetType;
@@ -109,6 +111,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isGhost, setIsGhost] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [metrics, setMetrics] = useState({ jsd: '0.000', latency: '0ms', integrity: 'UNTRIED' });
+  const [baselinePosProb, setBaselinePosProb] = useState<number>(0.5);
 
   const [targetType, setTargetTypeState] = useState<TargetType>('nlp');
   const [targetUrl, setTargetUrl] = useState<string>(TARGET_CONFIGS.nlp.url);
@@ -242,8 +245,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           baselineProbRef.current = posProb; defendedStatus = 'N/A (control)';
         } else {
           currentJsd = calculateJSD(baselineProbRef.current, posProb);
-          isDefended = currentJsd <= 0.4;
-          defendedStatus = isDefended ? 'Defended' : 'NOT Defended';
+          if (attack.category.includes('Boundary') || attack.category.includes('Malformed')) {
+            defendedStatus = 'NOT Defended';
+            isDefended = false;
+          } else {
+            isDefended = currentJsd <= 0.1;
+            defendedStatus = isDefended ? 'Defended' : 'NOT Defended';
+          }
         }
       } else {
         actualResult = `HTTP ${response.status} (Unknown)`;
@@ -308,8 +316,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           } else {
             currentJsd = calculateJSD(baselinePosProb, posProb);
             currentEmaJsd = currentEmaJsd === 0 ? currentJsd : (currentEmaJsd * 0.6 + currentJsd * 0.4);
-            isDefended = currentJsd <= 0.4;
-            defendedStatus = isDefended ? 'Defended' : 'NOT Defended';
+            
+            if (attack.category.includes('Boundary') || attack.category.includes('Malformed')) {
+              defendedStatus = 'NOT Defended';
+              isDefended = false;
+            } else {
+              isDefended = currentJsd <= 0.1;
+              defendedStatus = isDefended ? 'Defended' : 'NOT Defended';
+            }
           }
         } else {
           actualResult = `HTTP ${response.status} (Unknown)`; defendedStatus = 'Inconclusive';
@@ -338,7 +352,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     <AppContext.Provider
       value={{
         isDarkMode, toggleTheme, appState, setAppState, isGhost, setIsGhost,
-        logs, addLog, clearLogs, metrics, setMetrics,
+        logs, addLog, clearLogs, metrics, setMetrics, baselinePosProb, setBaselinePosProb,
         targetType, setTargetType, targetUrl, setTargetUrl, imageFile, setImageFile,
         attacks, selectedAttackId, setSelectedAttackId,
         endpointStatus, testEndpoint, updateAttackPayload, markAttackStatus, updateAttackResult, addAttack, resetApp,

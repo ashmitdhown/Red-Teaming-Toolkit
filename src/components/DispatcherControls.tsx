@@ -1,11 +1,13 @@
-import { useAppContext } from '../AppContext';
 import { motion } from 'framer-motion';
+import type { Attack } from '../AppContext';
 
 export const DispatcherControls = () => {
-  const { appState, attacks, triggerFullSequence, isChatOpen, toggleChat } = useAppContext();
+  const { 
+    appState, attacks, triggerFullSequence, isChatOpen, toggleChat 
+  } = useAppContext();
+  
   const isBusy = appState === 'ATTACKING';
   const hasAttacks = attacks.length > 0;
-
 
   return (
     <div className="h-36 bg-surface-panel border-t-2 border-ui-text relative flex flex-col p-4 shrink-0">

@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useAppContext, TARGET_CONFIGS } from '../AppContext';
 import type { TargetType } from '../AppContext';
+import { calculateJSD } from '../utils';
 
 const NLP_DEFAULT_JSON = `{
   "text": "I love this product"
@@ -11,7 +12,8 @@ export const TargetConfig = () => {
     attacks, selectedAttackId, endpointStatus, testEndpoint, updateAttackPayload,
     targetType, setTargetType, targetUrl, setTargetUrl,
     imageFile, setImageFile,
-    addLog, markAttackStatus, updateAttackResult, addAttack
+    addLog, markAttackStatus, updateAttackResult, addAttack,
+    metrics, setMetrics, baselinePosProb, setBaselinePosProb
   } = useAppContext();
 
   const activeAttack = attacks.find(a => a.id === selectedAttackId);
@@ -27,17 +29,54 @@ export const TargetConfig = () => {
   }, [selectedAttackId]);
 
   
-  const evaluateDefense = (status: number, data: any) => {
-    if (status === 500) return { res: 'HTTP 500 (Server Crash)', def: 'NOT Defended', isDef: false };
-    if (status === 422 || status === 400 || status === 405) return { res: `HTTP ${status} (Validation Error)`, def: 'Defended', isDef: true };
-    if (status >= 200 && status < 300) {
+  const evaluateDefense = (status: number, data: any, attack: any) => {
+    let resultText = '';
+    let defStatus: Attack['defendedStatus'] = 'Inconclusive';
+    let isDef = false;
+    let currentJsd = 0;
+
+    if (status === 500) {
+      resultText = 'HTTP 500 (Server Crash)';
+      defStatus = 'NOT Defended';
+      isDef = false;
+    } else if (status === 422 || status === 400 || status === 405) {
+      resultText = `HTTP ${status} (Validation Error)`;
+      defStatus = 'Defended';
+      isDef = true;
+    } else if (status >= 200 && status < 300) {
       const conf = data.confidence || 0;
       const label = data.label || 'unknown';
-      // Manual sends count as NOT defended if they get through validation, for simplicity, 
-      // or we just say 'Inconclusive' unless it's the control.
-      return { res: `Label: ${label} (Conf: ${conf.toFixed(2)})`, def: 'NOT Defended', isDef: false };
+      resultText = `Label: ${label} (Conf: ${conf.toFixed(2)})`;
+      
+      let posProb = 0.5;
+      if (label.toLowerCase().includes('pos') || label === '1' || label === 1) posProb = conf;
+      else if (label.toLowerCase().includes('neg') || label === '0' || label === 0) posProb = 1 - conf;
+
+      if (attack?.category === 'Control') {
+        setBaselinePosProb(posProb);
+        defStatus = 'N/A (control)';
+        isDef = true;
+      } else {
+        currentJsd = calculateJSD(baselinePosProb, posProb);
+        if (attack?.category.includes('Boundary') || attack?.category.includes('Malformed')) {
+          defStatus = 'NOT Defended';
+          isDef = false;
+        } else {
+          if (currentJsd > 0.1) {
+            defStatus = 'NOT Defended';
+            isDef = false;
+          } else {
+            defStatus = 'Defended';
+            isDef = true;
+          }
+        }
+      }
+    } else {
+      resultText = `HTTP ${status} (Unknown)`;
+      defStatus = 'Inconclusive';
+      isDef = false;
     }
-    return { res: `HTTP ${status} (Unknown)`, def: 'Inconclusive', isDef: false };
+    return { res: resultText, def: defStatus, isDef, currentJsd };
   };
 
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -73,6 +112,7 @@ export const TargetConfig = () => {
     markAttackStatus(attackId, 'EXECUTING');
     addLog(`Sending NLP payload → ${targetUrl}`, 'info');
     
+    const startTime = Date.now();
     try {
       const body = JSON.parse(nlpJson);
       const res = await fetch('/api/nlp/predict', {
@@ -80,12 +120,31 @@ export const TargetConfig = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
+      const latencyMs = Date.now() - startTime;
       const data = await res.json().catch(() => ({}));
       addLog(`Response [${res.status}]: ${JSON.stringify(data)}`, res.ok ? 'success' : 'warning');
       
-      const { res: resultText, def } = evaluateDefense(res.status, data);
+      const currentAttack = attacks.find(a => a.id === attackId) || { category: 'Manual Injections' };
+      const { res: resultText, def, currentJsd, isDef } = evaluateDefense(res.status, data, currentAttack);
+      
       updateAttackResult(attackId, resultText, def as any);
       markAttackStatus(attackId, 'DONE');
+      
+      if (currentAttack.category !== 'Control') {
+        const finalJsd = res.ok ? currentJsd : 0;
+        addLog(`[STATUS] ${def.toUpperCase()}${res.ok ? ` (JSD: ${finalJsd.toFixed(3)})` : ''}`, isDef ? 'success' : 'alert');
+        // Update metrics
+        const prevJsd = parseFloat(metrics.jsd) || 0;
+        const newEmaJsd = prevJsd === 0 ? finalJsd : (prevJsd * 0.6 + finalJsd * 0.4);
+        setMetrics({
+          ...metrics,
+          jsd: newEmaJsd.toFixed(3),
+          latency: `${latencyMs}ms`,
+          integrity: !isDef ? 'COMPROMISED' : 'MAINTAINED'
+        });
+      } else {
+        setMetrics({ ...metrics, latency: `${latencyMs}ms` });
+      }
       
     } catch (err) {
       if (err instanceof SyntaxError) {
@@ -121,6 +180,7 @@ export const TargetConfig = () => {
     markAttackStatus(attackId, 'EXECUTING');
     addLog(`Sending image "${imageFile.name}" → ${targetUrl}`, 'info');
     
+    const startTime = Date.now();
     try {
       const formData = new FormData();
       formData.append('file', imageFile);
@@ -128,12 +188,31 @@ export const TargetConfig = () => {
         method: 'POST',
         body: formData,
       });
+      const latencyMs = Date.now() - startTime;
       const data = await res.json().catch(() => ({}));
       addLog(`Response [${res.status}]: ${JSON.stringify(data)}`, res.ok ? 'success' : 'warning');
       
-      const { res: resultText, def } = evaluateDefense(res.status, data);
+      const currentAttack = attacks.find(a => a.id === attackId) || { category: 'Manual Injections' };
+      const { res: resultText, def, currentJsd, isDef } = evaluateDefense(res.status, data, currentAttack);
+      
       updateAttackResult(attackId, resultText, def as any);
       markAttackStatus(attackId, 'DONE');
+      
+      if (currentAttack.category !== 'Control') {
+        const finalJsd = res.ok ? currentJsd : 0;
+        addLog(`[STATUS] ${def.toUpperCase()}${res.ok ? ` (JSD: ${finalJsd.toFixed(3)})` : ''}`, isDef ? 'success' : 'alert');
+        // Update metrics
+        const prevJsd = parseFloat(metrics.jsd) || 0;
+        const newEmaJsd = prevJsd === 0 ? finalJsd : (prevJsd * 0.6 + finalJsd * 0.4);
+        setMetrics({
+          ...metrics,
+          jsd: newEmaJsd.toFixed(3),
+          latency: `${latencyMs}ms`,
+          integrity: !isDef ? 'COMPROMISED' : 'MAINTAINED'
+        });
+      } else {
+        setMetrics({ ...metrics, latency: `${latencyMs}ms` });
+      }
       
     } catch (err) {
       addLog(`Send failed: ${err instanceof Error ? err.message : String(err)}`, 'alert');
