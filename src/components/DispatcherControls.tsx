@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useAppContext } from '../AppContext';
 import type { Attack } from '../AppContext';
 
 export const DispatcherControls = () => {
