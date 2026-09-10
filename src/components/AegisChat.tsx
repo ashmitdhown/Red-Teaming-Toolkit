@@ -102,7 +102,7 @@ const ACTION_PROMPTS = [
 // Groq API
 // ---------------------------------------------------------------------------
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-const GROQ_MODEL   = 'openai/gpt-oss-120b';
+const GROQ_MODEL   = 'openai/gpt-oss-20b';
 const GROQ_URL     = 'https://api.groq.com/openai/v1/chat/completions';
 
 // ---------------------------------------------------------------------------

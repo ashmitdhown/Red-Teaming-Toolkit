@@ -10,6 +10,7 @@ import { ExecutionLog } from './components/ExecutionLog';
 import { DispatcherControls } from './components/DispatcherControls';
 import { LandingPage } from './components/LandingPage';
 import { AegisChat } from './components/AegisChat';
+import { ComplianceReport } from './components/ComplianceReport';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ── Widget registry ───────────────────────────────────────────────────────────
@@ -233,6 +234,7 @@ function App() {
   return (
     <AppProvider>
       <AppContent />
+      <ComplianceReport />
     </AppProvider>
   );
 }

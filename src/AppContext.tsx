@@ -101,6 +101,8 @@ interface AppContextType {
   triggerFullSequence: () => Promise<void>;
   isChatOpen: boolean;
   toggleChat: () => void;
+  isReportOpen: boolean;
+  toggleReport: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -121,8 +123,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [selectedAttackId, setSelectedAttackId] = useState<string | null>(null);
   const [endpointStatus, setEndpointStatus] = useState<'UNTESTED' | 'TESTING' | 'ONLINE' | 'OFFLINE'>('UNTESTED');
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
   const baselineProbRef = useRef(0.5); // persists baseline probability across single/full attack runs
   const toggleChat = useCallback(() => setIsChatOpen(p => !p), []);
+  const toggleReport = useCallback(() => setIsReportOpen(p => !p), []);
 
   useEffect(() => {
     if (isDarkMode) document.documentElement.classList.add('dark');
@@ -356,8 +360,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         targetType, setTargetType, targetUrl, setTargetUrl, imageFile, setImageFile,
         attacks, selectedAttackId, setSelectedAttackId,
         endpointStatus, testEndpoint, updateAttackPayload, markAttackStatus, updateAttackResult, addAttack, resetApp,
-        triggerSingleAttack, triggerFullSequence,
-        isChatOpen, toggleChat
+        triggerSingleAttack,
+        triggerFullSequence,
+        isChatOpen,
+        toggleChat,
+        isReportOpen,
+        toggleReport
       }}
     >
       {children}
