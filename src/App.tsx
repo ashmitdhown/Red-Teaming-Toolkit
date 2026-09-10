@@ -54,7 +54,7 @@ function AppContent() {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="w-screen h-screen overflow-hidden"
+          className="w-screen min-h-screen"
         >
           <LandingPage onEnterWorkspace={() => setView('workspace')} />
         </motion.div>
