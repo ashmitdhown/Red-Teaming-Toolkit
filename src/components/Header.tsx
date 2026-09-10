@@ -1,7 +1,7 @@
 import { useAppContext } from '../AppContext';
 
 export const Header = () => {
-  const { isDarkMode, toggleTheme, appState } = useAppContext();
+  const { isDarkMode, toggleTheme, appState, resetApp } = useAppContext();
 
   return (
     <header className="h-12 bg-surface-dark text-gray-300 flex items-center justify-between px-4 shrink-0 border-b border-ui-border">
@@ -11,15 +11,18 @@ export const Header = () => {
           AEGIS-GHOST <span className="text-gray-500 font-normal">// WORKSPACE</span>
         </div>
         <div className="h-4 w-px bg-gray-700"></div>
-        <div className="font-mono text-xs text-gray-400">TARGET: HTTP/REST [127.0.0.1:8000]</div>
+        <div className="font-mono text-xs text-gray-400">TARGET: LIVE ENDPOINT</div>
       </div>
       <div className="flex items-center gap-4 font-mono text-xs">
         <span className="text-gray-400">
           STATE: <span className={appState === 'ATTACKING' ? 'text-ui-alert animate-pulse' : 'text-ui-ok'}>{appState}</span>
         </span>
-        <span className="text-gray-400 hidden sm:inline">
-          AUTH: <span className="text-white">DESC_AUDIT_0X9</span>
-        </span>
+        <button
+          onClick={resetApp}
+          className="text-ui-alert hover:bg-ui-alert hover:text-black border border-ui-alert px-2 py-0.5 rounded-none font-bold transition-colors cursor-pointer"
+        >
+          [ RESET TELEMETRY ]
+        </button>
         <div className="h-4 w-px bg-gray-700 hidden sm:block"></div>
         <button
           onClick={toggleTheme}
