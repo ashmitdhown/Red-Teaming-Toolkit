@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 
 export type LogType = 'info' | 'success' | 'alert' | 'warning';
@@ -55,6 +55,14 @@ export const TARGET_CONFIGS = {
   },
 } as const;
 
+// ── Shared JSD calculation ────────────────────────────────────────────────────
+const calculateJSD = (pPos: number, qPos: number): number => {
+  const pNeg = 1 - pPos, qNeg = 1 - qPos;
+  const mPos = 0.5 * (pPos + qPos), mNeg = 0.5 * (pNeg + qNeg);
+  const kl = (p: number, m: number) => p <= 0 ? 0 : p * Math.log2(p / m);
+  return 0.5 * (kl(pPos, mPos) + kl(pNeg, mNeg)) + 0.5 * (kl(qPos, mPos) + kl(qNeg, mNeg));
+};
+
 interface AppContextType {
   isDarkMode: boolean;
   toggleTheme: () => void;
@@ -87,6 +95,10 @@ interface AppContextType {
   updateAttackResult: (id: string, actualResult: string, defendedStatus: Attack['defendedStatus']) => void;
   addAttack: (attack: Attack) => void;
   resetApp: () => void;
+  triggerSingleAttack: (attackId: string) => Promise<void>;
+  triggerFullSequence: () => Promise<void>;
+  isChatOpen: boolean;
+  toggleChat: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -99,12 +111,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [metrics, setMetrics] = useState({ jsd: '0.000', latency: '0ms', integrity: 'UNTRIED' });
 
   const [targetType, setTargetTypeState] = useState<TargetType>('nlp');
-  const [targetUrl, setTargetUrl] = useState(TARGET_CONFIGS.nlp.url);
+  const [targetUrl, setTargetUrl] = useState<string>(TARGET_CONFIGS.nlp.url);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const [attacks, setAttacks] = useState<Attack[]>(INITIAL_ATTACKS);
   const [selectedAttackId, setSelectedAttackId] = useState<string | null>(null);
   const [endpointStatus, setEndpointStatus] = useState<'UNTESTED' | 'TESTING' | 'ONLINE' | 'OFFLINE'>('UNTESTED');
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const baselineProbRef = useRef(0.5); // persists baseline probability across single/full attack runs
+  const toggleChat = useCallback(() => setIsChatOpen(p => !p), []);
 
   useEffect(() => {
     if (isDarkMode) document.documentElement.classList.add('dark');
@@ -188,6 +203,137 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setSelectedAttackId(null);
   }, [clearLogs]);
 
+  // ── Single-attack execution (used by AEGIS-AI chat agent) ─────────────────
+  const triggerSingleAttack = useCallback(async (attackId: string) => {
+    const attack = attacks.find(a => a.id === attackId);
+    if (!attack) { addLog(`[ERROR] Attack ID "${attackId}" not found.`, 'alert'); return; }
+
+    addLog(`[AGENT] Dispatching: ${attack.name} (${attack.category})`, 'info');
+    markAttackStatus(attack.id, 'EXECUTING');
+
+    const proxyPath = targetType === 'nlp' ? '/api/nlp/predict' : '/api/image/predict';
+    const startTime = Date.now();
+
+    try {
+      const response = await fetch(proxyPath, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: attack.payload,
+      });
+      const latencyMs = Date.now() - startTime;
+      let actualResult = '';
+      let defendedStatus: Attack['defendedStatus'] = 'Inconclusive';
+      let currentJsd = 0;
+      let isDefended = true;
+
+      if (response.status === 500) {
+        actualResult = 'HTTP 500 (Server Crash)'; defendedStatus = 'NOT Defended'; isDefended = false;
+      } else if ([422, 400, 405].includes(response.status)) {
+        actualResult = `HTTP ${response.status} (Validation Error)`; defendedStatus = 'Defended';
+      } else if (response.ok) {
+        const data = await response.json();
+        const conf = data.confidence || 0;
+        const label = data.label || 'unknown';
+        actualResult = `Label: ${label} (Conf: ${conf.toFixed(2)})`;
+        let posProb = 0.5;
+        if (label.toLowerCase().includes('pos') || label === '1' || label === 1) posProb = conf;
+        else if (label.toLowerCase().includes('neg') || label === '0' || label === 0) posProb = 1 - conf;
+        if (attack.category === 'Control') {
+          baselineProbRef.current = posProb; defendedStatus = 'N/A (control)';
+        } else {
+          currentJsd = calculateJSD(baselineProbRef.current, posProb);
+          isDefended = currentJsd <= 0.4;
+          defendedStatus = isDefended ? 'Defended' : 'NOT Defended';
+        }
+      } else {
+        actualResult = `HTTP ${response.status} (Unknown)`;
+      }
+
+      markAttackStatus(attack.id, 'DONE');
+      updateAttackResult(attack.id, actualResult, defendedStatus);
+      addLog(`[RESULT] ${actualResult}`, isDefended ? 'info' : 'warning');
+      if (attack.category !== 'Control') {
+        addLog(`[JSD] ${currentJsd.toFixed(3)} → ${defendedStatus.toUpperCase()}`, isDefended ? 'success' : 'alert');
+      }
+      setMetrics({ jsd: currentJsd.toFixed(3), latency: `${latencyMs}ms`, integrity: isDefended ? 'NOMINAL' : 'COMPROMISED' });
+    } catch (error) {
+      markAttackStatus(attack.id, 'DONE');
+      updateAttackResult(attack.id, 'Network Error', 'Inconclusive');
+      addLog(`[ERROR] Fetch failed: ${error instanceof Error ? error.message : 'Unknown'}`, 'alert');
+    }
+  }, [attacks, targetType, addLog, markAttackStatus, updateAttackResult]);
+
+  // ── Full attack sequence (shared by Dispatcher button + AEGIS-AI chat) ────
+  const triggerFullSequence = useCallback(async () => {
+    if (appState === 'ATTACKING' || attacks.length === 0) return;
+    setAppState('ATTACKING');
+    addLog(`[SYSTEM] Initiating full attack sequence against ${targetUrl}...`, 'alert');
+
+    let baselinePosProb = baselineProbRef.current;
+    let currentEmaJsd = 0, totalLatency = 0, successfulAttacks = 0, totalExecuted = 0;
+
+    for (const attack of attacks) {
+      await new Promise(r => setTimeout(r, 800));
+      markAttackStatus(attack.id, 'EXECUTING');
+      addLog(`[INJECT] ${attack.name} (${attack.category})`, 'info');
+
+      const startTime = Date.now();
+      let actualResult = '', defendedStatus: Attack['defendedStatus'] = 'Inconclusive';
+      let isDefended = true, currentJsd = 0;
+
+      try {
+        const proxyPath = targetType === 'nlp' ? '/api/nlp/predict' : '/api/image/predict';
+        const response = await fetch(proxyPath, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: attack.payload,
+        });
+        const latencyMs = Date.now() - startTime;
+        totalLatency += latencyMs; totalExecuted++;
+
+        if (response.status === 500) {
+          actualResult = 'HTTP 500 (Server Crash)'; defendedStatus = 'NOT Defended'; isDefended = false;
+        } else if ([422, 400, 405].includes(response.status)) {
+          actualResult = `HTTP ${response.status} (Validation Error)`; defendedStatus = 'Defended'; isDefended = true;
+        } else if (response.ok) {
+          const data = await response.json();
+          const conf = data.confidence || 0, label = data.label || 'unknown';
+          actualResult = `Label: ${label} (Conf: ${conf.toFixed(2)})`;
+          let posProb = 0.5;
+          if (label.toLowerCase().includes('pos') || label === '1' || label === 1) posProb = conf;
+          else if (label.toLowerCase().includes('neg') || label === '0' || label === 0) posProb = 1 - conf;
+          if (attack.category === 'Control') {
+            baselinePosProb = posProb; baselineProbRef.current = posProb;
+            defendedStatus = 'N/A (control)'; isDefended = true;
+          } else {
+            currentJsd = calculateJSD(baselinePosProb, posProb);
+            currentEmaJsd = currentEmaJsd === 0 ? currentJsd : (currentEmaJsd * 0.6 + currentJsd * 0.4);
+            isDefended = currentJsd <= 0.4;
+            defendedStatus = isDefended ? 'Defended' : 'NOT Defended';
+          }
+        } else {
+          actualResult = `HTTP ${response.status} (Unknown)`; defendedStatus = 'Inconclusive';
+        }
+
+        if (!isDefended) successfulAttacks++;
+        markAttackStatus(attack.id, 'DONE');
+        updateAttackResult(attack.id, actualResult, defendedStatus);
+        addLog(`[RESULT] ${actualResult}`, isDefended ? 'info' : 'warning');
+        if (attack.category !== 'Control') {
+          addLog(`[STATUS] ${defendedStatus.toUpperCase()} (JSD: ${currentJsd.toFixed(3)})`, isDefended ? 'success' : 'alert');
+        }
+        setMetrics({ jsd: currentEmaJsd.toFixed(3), latency: `${Math.round(totalLatency / totalExecuted)}ms`, integrity: successfulAttacks > 0 ? 'COMPROMISED' : 'NOMINAL' });
+      } catch (error) {
+        markAttackStatus(attack.id, 'DONE');
+        updateAttackResult(attack.id, 'Network Error', 'Inconclusive');
+        addLog(`[RESULT] Fetch Failed: ${error instanceof Error ? error.message : 'Unknown'}`, 'alert');
+      }
+    }
+
+    setAppState('IDLE');
+    addLog(`[SYSTEM] Sequence complete. Integrity: ${successfulAttacks > 0 ? 'COMPROMISED' : 'NOMINAL'}.`, successfulAttacks > 0 ? 'alert' : 'success');
+  }, [appState, attacks, targetType, targetUrl, addLog, markAttackStatus, updateAttackResult]);
+
   return (
     <AppContext.Provider
       value={{
@@ -195,7 +341,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         logs, addLog, clearLogs, metrics, setMetrics,
         targetType, setTargetType, targetUrl, setTargetUrl, imageFile, setImageFile,
         attacks, selectedAttackId, setSelectedAttackId,
-        endpointStatus, testEndpoint, updateAttackPayload, markAttackStatus, updateAttackResult, addAttack, resetApp
+        endpointStatus, testEndpoint, updateAttackPayload, markAttackStatus, updateAttackResult, addAttack, resetApp,
+        triggerSingleAttack, triggerFullSequence,
+        isChatOpen, toggleChat
       }}
     >
       {children}

@@ -9,6 +9,7 @@ import { TelemetryInspector } from './components/TelemetryInspector';
 import { ExecutionLog } from './components/ExecutionLog';
 import { DispatcherControls } from './components/DispatcherControls';
 import { LandingPage } from './components/LandingPage';
+import { AegisChat } from './components/AegisChat';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ── Widget registry ───────────────────────────────────────────────────────────
@@ -178,7 +179,7 @@ function Workspace() {
         {/* ── Main column resize handle ── */}
         <ColHandle onMouseDown={mainCol.onMouseDown} />
 
-        {/* ── RIGHT SIDEBAR ── */}
+        {/* ── Right Sidebar ── */}
         <section
           className="flex flex-col overflow-hidden min-w-[300px] min-h-0"
           style={{ width: `${100 - mainCol.pct}%`, gap: '1px' }}
@@ -189,9 +190,13 @@ function Workspace() {
         </section>
 
       </main>
+
+      {/* Floating AEGIS-AI panel — triggered from DispatcherControls header */}
+      <AegisChat />
     </div>
   );
 }
+
 
 // ── App shell ─────────────────────────────────────────────────────────────────
 function AppContent() {

@@ -21,8 +21,8 @@ const useScramble = (text: string, startDelay: number = 0) => {
   useEffect(() => {
     if (!isInView) return;
 
-    let timeout: NodeJS.Timeout;
-    let interval: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout>;
+    let interval: ReturnType<typeof setInterval>;
     let iteration = 0;
 
     const startAnimation = () => {
