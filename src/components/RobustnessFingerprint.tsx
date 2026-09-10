@@ -4,7 +4,7 @@ export const RobustnessFingerprint = () => {
   const { attacks } = useAppContext();
 
   const getScore = (categoryPrefix: string) => {
-    const categoryAttacks = attacks.filter(a => a.category.startsWith(categoryPrefix));
+    const categoryAttacks = attacks.filter(a => a.category.startsWith(categoryPrefix) || (categoryPrefix === 'Adversarial' && a.category === 'Manual Injections'));
     if (categoryAttacks.length === 0) return 0;
     
     let executedCount = 0;

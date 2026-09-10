@@ -70,6 +70,15 @@
     user-select: text;
   }
 
+  /* Hide scrollbar but keep functionality */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   .crosshair-corner {
     position: absolute;
     width: 0.5rem;
@@ -112,7 +121,7 @@
   }
 
   .glitch-active {
-    animation: text-flicker 0.2s linear infinite;
+    animation: text-flicker 1.5s ease-in-out infinite;
     color: rgb(var(--col-alert));
   }
 
@@ -207,33 +216,12 @@
 }
 
 @keyframes text-flicker {
-  0% {
+  0%, 100% {
     opacity: 1;
-    transform: translateX(0);
+    text-shadow: 0 0 0 rgba(var(--col-alert), 0);
   }
-
-  20% {
+  50% {
     opacity: 0.8;
-    transform: translateX(-1px);
-  }
-
-  40% {
-    opacity: 1;
-    transform: translateX(1px);
-  }
-
-  60% {
-    opacity: 0.4;
-    transform: translateX(0);
-  }
-
-  80% {
-    opacity: 1;
-    transform: translateX(1px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateX(0);
+    text-shadow: 0 0 12px rgba(var(--col-alert), 0.6);
   }
 }

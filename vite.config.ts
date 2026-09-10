@@ -6,10 +6,15 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': {
+      '/api/nlp': {
         target: 'https://ai-redteam-nlp-api.onrender.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: (path) => path.replace(/^\/api\/nlp/, ''),
+      },
+      '/api/image': {
+        target: 'https://ai-redteam-image-api.onrender.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/image/, ''),
       },
     },
   },

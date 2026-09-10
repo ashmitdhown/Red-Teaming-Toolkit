@@ -23,8 +23,12 @@ export const ExecutionLog = () => {
           let colorCls = 'text-ui-muted';
           let prefix = '[i]';
           if (log.type === 'success') {
-            colorCls = 'text-ui-text font-bold';
+            colorCls = 'text-ui-ok font-bold';
             prefix = '[+]';
+          }
+          if (log.type === 'warning') {
+            colorCls = 'text-yellow-400';
+            prefix = '[~]';
           }
           if (log.type === 'alert') {
             colorCls = 'text-ui-alert font-bold bg-ui-alert/10 border-l-2 border-ui-alert pl-2 -ml-[8px] py-1 my-1';

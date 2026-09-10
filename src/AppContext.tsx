@@ -11,6 +11,7 @@ export interface LogEntry {
 
 export type AppState = 'IDLE' | 'ATTACKING';
 export type AttackStatus = 'IDLE' | 'EXECUTING' | 'DONE';
+export type TargetType = 'nlp' | 'image';
 
 export interface Attack {
   id: string;
@@ -43,6 +44,17 @@ const INITIAL_ATTACKS: Attack[] = [
   { id: '18', name: 'Calibration collapse', category: 'Adversarial perturbation', payload: '{\n  "text": " "\n}', expectedResult: 'confidence always 1.0', defendedStatus: 'NOT Defended', status: 'IDLE' },
 ];
 
+export const TARGET_CONFIGS = {
+  nlp: {
+    label: 'NLP Sentiment',
+    url: 'https://ai-redteam-nlp-api.onrender.com/predict',
+  },
+  image: {
+    label: 'Image Classification',
+    url: 'https://ai-redteam-image-api.onrender.com/predict',
+  },
+} as const;
+
 interface AppContextType {
   isDarkMode: boolean;
   toggleTheme: () => void;
@@ -55,8 +67,16 @@ interface AppContextType {
   clearLogs: () => void;
   metrics: { jsd: string; latency: string; integrity: string; };
   setMetrics: (metrics: any) => void;
-  
-  // New Execution Engine State
+
+  // Target config
+  targetType: TargetType;
+  setTargetType: (type: TargetType) => void;
+  targetUrl: string;
+  setTargetUrl: (url: string) => void;
+  imageFile: File | null;
+  setImageFile: (file: File | null) => void;
+
+  // Execution Engine State
   attacks: Attack[];
   selectedAttackId: string | null;
   setSelectedAttackId: (id: string | null) => void;
@@ -65,6 +85,7 @@ interface AppContextType {
   updateAttackPayload: (id: string, payload: string) => void;
   markAttackStatus: (id: string, status: AttackStatus) => void;
   updateAttackResult: (id: string, actualResult: string, defendedStatus: Attack['defendedStatus']) => void;
+  addAttack: (attack: Attack) => void;
   resetApp: () => void;
 }
 
@@ -76,7 +97,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isGhost, setIsGhost] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [metrics, setMetrics] = useState({ jsd: '0.000', latency: '0ms', integrity: 'UNTRIED' });
-  
+
+  const [targetType, setTargetTypeState] = useState<TargetType>('nlp');
+  const [targetUrl, setTargetUrl] = useState(TARGET_CONFIGS.nlp.url);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
   const [attacks, setAttacks] = useState<Attack[]>(INITIAL_ATTACKS);
   const [selectedAttackId, setSelectedAttackId] = useState<string | null>(null);
   const [endpointStatus, setEndpointStatus] = useState<'UNTESTED' | 'TESTING' | 'ONLINE' | 'OFFLINE'>('UNTESTED');
@@ -90,6 +115,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     document.documentElement.classList.toggle('dark');
   };
 
+  // When target type changes, auto-update the URL
+  const setTargetType = useCallback((type: TargetType) => {
+    setTargetTypeState(type);
+    setTargetUrl(TARGET_CONFIGS[type].url);
+    setImageFile(null);
+    setEndpointStatus('UNTESTED');
+  }, []);
+
   const addLog = useCallback((msg: string, type: LogType = 'info') => {
     const time = new Date().toISOString().split('T')[1].substring(0, 11);
     setLogs((prev) => [...prev, { id: Math.random().toString(36).substring(7), time, message: msg, type }]);
@@ -99,27 +132,37 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const testEndpoint = useCallback(async () => {
     setEndpointStatus('TESTING');
-    addLog('Pinging target endpoint [https://ai-redteam-nlp-api.onrender.com/predict]...', 'info');
-    
+    addLog(`Pinging target endpoint [${targetUrl}]...`, 'info');
+
+    // Use Vite proxy paths to avoid CORS
+    const proxyPath = targetType === 'nlp' ? '/api/nlp/predict' : '/api/image/predict';
+
     try {
-      const response = await fetch('/api/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: "Ping test" })
-      });
-      
-      if (response.ok || response.status === 422) {
-         setEndpointStatus('ONLINE');
-         addLog('Endpoint ONLINE. Connection established.', 'success');
+      let response: Response;
+      if (targetType === 'nlp') {
+        response = await fetch(proxyPath, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: 'ping' }),
+        });
       } else {
-         setEndpointStatus('OFFLINE');
-         addLog(`Endpoint responded with unexpected status: ${response.status}`, 'warning');
+        // For image endpoint, a GET to root is enough to check if it's alive
+        response = await fetch('/api/image/', { method: 'GET' });
+      }
+
+      // 200, 422 (validation error) and 405 (method not allowed) all mean the server is reachable
+      if (response.ok || [422, 405, 400].includes(response.status)) {
+        setEndpointStatus('ONLINE');
+        addLog('Endpoint ONLINE. Connection established.', 'success');
+      } else {
+        setEndpointStatus('OFFLINE');
+        addLog(`Endpoint responded with unexpected status: ${response.status}`, 'warning');
       }
     } catch (error) {
       setEndpointStatus('OFFLINE');
-      addLog(`Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}. Server might be sleeping.`, 'alert');
+      addLog(`Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}. Server might be sleeping (cold start ~30s).`, 'alert');
     }
-  }, [addLog]);
+  }, [addLog, targetUrl, targetType]);
 
   const updateAttackPayload = useCallback((id: string, payload: string) => {
     setAttacks(prev => prev.map(a => a.id === id ? { ...a, payload } : a));
@@ -131,6 +174,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const updateAttackResult = useCallback((id: string, expectedResult: string, defendedStatus: Attack['defendedStatus']) => {
     setAttacks(prev => prev.map(a => a.id === id ? { ...a, expectedResult, defendedStatus } : a));
+  }, []);
+
+    const addAttack = useCallback((attack: Attack) => {
+    setAttacks(prev => [...prev, attack]);
   }, []);
 
   const resetApp = useCallback(() => {
@@ -146,8 +193,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       value={{
         isDarkMode, toggleTheme, appState, setAppState, isGhost, setIsGhost,
         logs, addLog, clearLogs, metrics, setMetrics,
+        targetType, setTargetType, targetUrl, setTargetUrl, imageFile, setImageFile,
         attacks, selectedAttackId, setSelectedAttackId,
-        endpointStatus, testEndpoint, updateAttackPayload, markAttackStatus, updateAttackResult, resetApp
+        endpointStatus, testEndpoint, updateAttackPayload, markAttackStatus, updateAttackResult, addAttack, resetApp
       }}
     >
       {children}
