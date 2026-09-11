@@ -95,7 +95,7 @@ export const ComplianceReport = () => {
     if (executedAttacks.length === 0) return;
 
     // Fingerprint the current batch to avoid re-running unnecessarily
-    const fingerprint = executedAttacks.map(a => `${a.id}:${a.expectedResult}:${a.defendedStatus}`).join('|');
+    const fingerprint = executedAttacks.map(a => `${a.id}:${a.expectedResult}:${a.defendedStatus}:${a.jsd}:${a.latencyMs}`).join('|');
     if (fingerprint === generatedForRef.current) return;
     if (isGenerating) return;
 
@@ -165,7 +165,7 @@ Return ONLY valid JSON (no markdown) with this EXACT structure:
     };
 
     run();
-  }, [appState, executedAttacks.length, isGenerating]);
+  }, [appState, executedAttacks, isGenerating]);
 
   // ── Build sorted findings (all executed attacks) ─────────────────────────────
   const detailedFindings = executedAttacks.map(attack => {
