@@ -111,7 +111,7 @@ function Workspace() {
   const hasTopRight = showRedteam;
 
   return (
-    <div className="flex flex-col font-sans text-sm transition-colors duration-300 h-screen w-screen bg-surface-base text-ui-text">
+    <div className="flex flex-col font-sans text-sm transition-colors duration-300 h-screen w-screen bg-surface-base text-ui-text print:hidden">
       <Header activeWidgets={activeWidgets} onToggleWidget={toggleWidget} />
 
       <main className="flex-1 flex overflow-hidden bg-ui-border min-h-0" style={{ gap: '1px', padding: '1px' }}>
@@ -211,7 +211,7 @@ function AppContent() {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="w-screen min-h-screen"
+          className="w-screen min-h-screen print:hidden"
         >
           <LandingPage onEnterWorkspace={() => setView('workspace')} />
         </motion.div>
@@ -221,7 +221,7 @@ function AppContent() {
           initial={{ opacity: 0, scale: 1.02 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="w-screen h-screen"
+          className="w-screen h-screen print:hidden"
         >
           <Workspace />
         </motion.div>

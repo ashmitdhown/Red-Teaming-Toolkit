@@ -225,3 +225,84 @@
     text-shadow: 0 0 12px rgba(var(--col-alert), 0.6);
   }
 }
+
+/* ── PDF: zero-margin removes URL / date / title injected by browser ── */
+@page {
+  size: A4;
+  margin: 0mm;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Hide everything at body level and force white background */
+  html, body {
+    background-color: white !important;
+    background: white !important;
+  }
+  body > * { display: none !important; }
+  body > #root { display: block !important; }
+
+  /* Hide everything inside React root except the report */
+  #root > * { display: none !important; }
+
+  /* ── The report overlay ── */
+  #root #aegis-report {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    inset: auto !important;
+    z-index: auto !important;
+    background: white !important;
+  }
+
+  /* Ensure the toolbar remains hidden! */
+  #aegis-report .print\:hidden {
+    display: none !important;
+  }
+
+  /* Only strip flex from the outermost scroll container to fix height propagation */
+  #aegis-report > div:not(.print\:hidden) {
+    display: block !important;
+    height: auto !important;
+    width: 100% !important;
+    overflow: visible !important;
+    flex: none !important;
+  }
+
+  /* Ensure all inner content can overflow visibly for printing */
+  #aegis-report * {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  /* Content cards */
+  #aegis-report .shadow-lg { box-shadow: none !important; }
+  #aegis-report .my-6 { margin: 0 !important; }
+  #aegis-report .max-w-4xl { max-width: 100% !important; }
+
+  /* Compensate for zero page margins — add padding to content */
+  #aegis-report .px-10 { padding-left: 1.5cm !important; padding-right: 1.5cm !important; }
+
+  /* Preserve grid layout for metric cards and infographic rows */
+  #aegis-report .grid { display: grid !important; }
+  #aegis-report .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  #aegis-report .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  #aegis-report .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  #aegis-report .grid > * { flex: unset !important; }
+
+  /* Color preservation */
+  #aegis-report .bg-gray-900 { background-color: #111827 !important; }
+  #aegis-report .bg-gray-50  { background-color: #f9fafb !important; }
+
+  /* Page break controls */
+  .print\:break-before-page { break-before: page !important; }
+  .print\:break-inside-avoid { break-inside: avoid !important; }
+}
