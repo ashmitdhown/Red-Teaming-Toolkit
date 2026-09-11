@@ -177,7 +177,7 @@ export const LandingPage = ({ onEnterWorkspace }: LandingPageProps) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText('curl -sSL https://get.aegis-ghost.io/run.sh | bash');
+    navigator.clipboard.writeText('git clone https://github.com/ashmitdhown/Red-Teaming-Toolkit.git');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -555,7 +555,7 @@ export const LandingPage = ({ onEnterWorkspace }: LandingPageProps) => {
           <div className="p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="font-mono text-sm">
               <span className="text-[#F43F5E] mr-4">$</span>
-              <span className="text-[#E4E4E7]">curl -sSL https://get.aegis-ghost.io/run.sh | bash</span>
+              <span className="text-[#E4E4E7]">git clone https://github.com/ashmitdhown/Red-Teaming-Toolkit.git</span>
             </div>
             <button 
               onClick={handleCopy}
