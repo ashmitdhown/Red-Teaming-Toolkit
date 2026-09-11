@@ -4,7 +4,7 @@ import type { Attack } from '../AppContext';
 
 export const DispatcherControls = () => {
   const { 
-    appState, attacks, triggerFullSequence, isChatOpen, toggleChat, toggleReport 
+    appState, attacks, triggerFullSequence, stopSequence, isChatOpen, toggleChat, toggleReport 
   } = useAppContext();
   
   const isBusy = appState === 'ATTACKING';
@@ -36,18 +36,29 @@ export const DispatcherControls = () => {
            </div>
         ) : (
           <div className="w-full h-full flex gap-2">
-            <button
-              disabled={isBusy}
-              onClick={triggerFullSequence}
-              className="flex-1 h-full btn-hard btn-alert rounded-sm font-mono text-sm font-bold flex flex-col items-center justify-center transition-all disabled:opacity-50"
-            >
-              <span className="block tracking-widest">{isBusy ? 'EXECUTING SEQUENCE...' : 'START ATTACK SEQUENCE'}</span>
-              {!isBusy && (
+            {!isBusy ? (
+              <button
+                onClick={triggerFullSequence}
+                className="flex-1 h-full btn-hard btn-alert rounded-sm font-mono text-sm font-bold flex flex-col items-center justify-center transition-all"
+              >
+                <span className="block tracking-widest">START ATTACK SEQUENCE</span>
                 <span className="text-[10px] text-ui-alert/80 mt-1 font-normal tracking-tight uppercase">
                   {attacks.length} Vectors Loaded
                 </span>
-              )}
-            </button>
+              </button>
+            ) : (
+              <button
+                onClick={stopSequence}
+                className="flex-1 h-full border-2 border-red-500 bg-red-950/30 hover:bg-red-900/50 text-red-500 rounded-sm font-mono text-sm font-bold flex flex-col items-center justify-center transition-all animate-pulse"
+              >
+                <span className="block tracking-widest flex items-center gap-2">
+                  <span className="w-2 h-2 bg-red-500 rounded-sm inline-block" /> STOP SEQUENCE
+                </span>
+                <span className="text-[10px] text-red-500/80 mt-1 font-normal tracking-tight uppercase">
+                  Click to abort remaining vectors
+                </span>
+              </button>
+            )}
             <button
               disabled={isBusy || attacks.every(a => a.status === 'IDLE')}
               onClick={toggleReport}

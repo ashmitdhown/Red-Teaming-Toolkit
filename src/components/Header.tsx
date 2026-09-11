@@ -8,7 +8,7 @@ interface HeaderProps {
 }
 
 export const Header = ({ activeWidgets, onToggleWidget }: HeaderProps) => {
-  const { isDarkMode, toggleTheme, appState, resetApp } = useAppContext();
+  const { appState, resetApp } = useAppContext();
 
   return (
     <header className="h-12 bg-surface-dark text-gray-300 flex items-center justify-between px-4 shrink-0 border-b border-ui-border gap-4 overflow-hidden">
@@ -70,15 +70,6 @@ export const Header = ({ activeWidgets, onToggleWidget }: HeaderProps) => {
           className="text-ui-alert hover:bg-ui-alert hover:text-black border border-ui-alert px-2 py-0.5 font-bold transition-colors cursor-pointer text-[10px] tracking-widest"
         >
           [ RESET ]
-        </button>
-        <div className="h-4 w-px bg-gray-700 hidden sm:block" />
-        <button
-          onClick={toggleTheme}
-          className={`px-2 py-1 transition-colors flex items-center gap-1 cursor-pointer text-[10px] tracking-widest ${
-            isDarkMode ? 'text-ui-accent bg-gray-800' : 'hover:text-white hover:bg-gray-800'
-          }`}
-        >
-          {isDarkMode ? '[ LIGHT ]' : '[ DARK ]'}
         </button>
       </div>
     </header>

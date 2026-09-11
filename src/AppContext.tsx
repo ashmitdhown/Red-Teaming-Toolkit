@@ -150,6 +150,7 @@ interface AppContextType {
   resetApp: () => void;
   triggerSingleAttack: (attackId: string) => Promise<void>;
   triggerFullSequence: () => Promise<void>;
+  stopSequence: () => void;
   isChatOpen: boolean;
   toggleChat: () => void;
   isReportOpen: boolean;
@@ -173,6 +174,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [attacks, setAttacks] = useState<Attack[]>(INITIAL_NLP_ATTACKS);
   const [selectedAttackId, setSelectedAttackId] = useState<string | null>(null);
   const [endpointStatus, setEndpointStatus] = useState<'UNTESTED' | 'TESTING' | 'ONLINE' | 'OFFLINE'>('UNTESTED');
+  
+  const abortSequenceRef = useRef<boolean>(false);
+  const stopSequence = useCallback(() => {
+    abortSequenceRef.current = true;
+    addLog('[ENGINE] Abort signal sent to execution engine.', 'warning');
+  }, []);
+
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const baselineProbRef = useRef(0.5);               // NLP: baseline positive-class probability
@@ -382,6 +390,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const triggerFullSequence = useCallback(async () => {
     if (appState === 'ATTACKING' || attacks.length === 0) return;
     setAppState('ATTACKING');
+    abortSequenceRef.current = false;
     addLog(`[SYSTEM] Initiating full attack sequence against ${targetUrl}...`, 'alert');
 
     let baselinePosProb = baselineProbRef.current;
@@ -390,7 +399,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const DELAY = targetType === 'image' ? 1000 : 800; // image processing needs a touch more time
 
     for (const attack of attacks) {
+      if (abortSequenceRef.current) {
+        addLog(`[SYSTEM] Sequence aborted by user.`, 'alert');
+        break;
+      }
+
       await new Promise(r => setTimeout(r, DELAY));
+      if (abortSequenceRef.current) break; // Check again after delay
+
       markAttackStatus(attack.id, 'EXECUTING');
       addLog(`[INJECT] ${attack.name} (${attack.category})`, 'info');
 
@@ -508,6 +524,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         endpointStatus, testEndpoint, updateAttackPayload, markAttackStatus, updateAttackResult, addAttack, resetApp,
         triggerSingleAttack,
         triggerFullSequence,
+        stopSequence,
         isChatOpen,
         toggleChat,
         isReportOpen,
