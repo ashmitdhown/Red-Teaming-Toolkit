@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/nlp/:path*",
+      "destination": "https://ai-redteam-nlp-api.onrender.com/:path*"
+    },
+    {
+      "source": "/api/image/:path*",
+      "destination": "https://ai-redteam-image-api.onrender.com/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

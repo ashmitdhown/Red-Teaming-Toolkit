@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { evaluateManualInjectionWithLLM } from '../utils/llmEvaluator';
 import { useAppContext, TARGET_CONFIGS } from '../AppContext';
-import type { TargetType } from '../AppContext';
+import type { TargetType, Attack } from '../AppContext';
 import { calculateJSD } from '../utils';
 
 const NLP_DEFAULT_JSON = `{
@@ -98,18 +98,19 @@ export const TargetConfig = () => {
     
     // Create manual attack if none is selected
     let attackId = activeAttack?.id;
-    let currentAttack = activeAttack;
+    const currentAttack: Attack = activeAttack ?? {
+      id: attackId ?? ('manual-' + Date.now()),
+      name: 'Manual Payload',
+      category: 'Manual Injections',
+      payload: nlpJson,
+      expectedResult: 'N/A',
+      defendedStatus: 'Inconclusive',
+      status: 'IDLE',
+      jsd: 0,
+      latencyMs: 0
+    };
     if (!attackId) {
-      attackId = 'manual-' + Date.now();
-      currentAttack = {
-        id: attackId,
-        name: 'Manual Payload',
-        category: 'Manual Injections',
-        payload: nlpJson,
-        expectedResult: 'N/A',
-        defendedStatus: 'Inconclusive',
-        status: 'IDLE'
-      };
+      attackId = currentAttack.id;
       addAttack(currentAttack);
     }
     
@@ -190,18 +191,19 @@ export const TargetConfig = () => {
     setIsSending(true);
     
     let attackId = activeAttack?.id;
-    let currentAttack = activeAttack;
+    const currentAttack: Attack = activeAttack ?? {
+      id: attackId ?? ('manual-img-' + Date.now()),
+      name: 'Manual Image: ' + imageFile.name,
+      category: 'Manual Injections',
+      payload: 'Image data',
+      expectedResult: 'N/A',
+      defendedStatus: 'Inconclusive',
+      status: 'IDLE',
+      jsd: 0,
+      latencyMs: 0
+    };
     if (!attackId) {
-      attackId = 'manual-img-' + Date.now();
-      currentAttack = {
-        id: attackId,
-        name: 'Manual Image: ' + imageFile.name,
-        category: 'Manual Injections',
-        payload: 'Image data',
-        expectedResult: 'N/A',
-        defendedStatus: 'Inconclusive',
-        status: 'IDLE'
-      };
+      attackId = currentAttack.id;
       addAttack(currentAttack);
     }
     
