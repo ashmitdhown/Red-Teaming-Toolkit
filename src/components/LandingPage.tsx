@@ -383,33 +383,7 @@ export const LandingPage = ({ onEnterWorkspace }: LandingPageProps) => {
       </section>
 
 
-      {/* ----------------- 5. ACCURATE STATISTICS ----------------- */}
-      <section className="relative w-full py-32 px-6 md:px-24 z-10 border-t border-[#27272A] bg-[#030303]">
-        <div className="max-w-7xl mx-auto">
-           <div className="mb-16 text-center">
-            <span className="font-mono text-[10px] tracking-widest text-[#F43F5E] block mb-4">EMPIRICAL EVIDENCE</span>
-            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight text-white">The Reality.</h2>
-          </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-4">
-            {[
-              { label: 'WAF EVASION', val: 98.0, float: true, suffix: '%', sub: '49/50 Attack Vectors Bypassed' },
-              { label: 'WEIGHTS REQ.', val: 0, float: false, suffix: '', sub: 'True Black-Box' },
-              { label: 'BASELINE (N)', val: 50, float: false, suffix: '', sub: '18 NLP + 32 Image Vectors' },
-              { label: 'AUDIT OVERHEAD', val: 14.1, float: true, suffix: 'ms', sub: 'Latency Addition' },
-            ].map((stat, i) => (
-              <div key={i} className="flex flex-col items-center text-center p-8 border border-[#27272A] bg-[#050505] relative overflow-hidden group">
-                <div className="absolute inset-0 bg-[#F43F5E]/5 scale-y-0 group-hover:scale-y-100 origin-bottom transition-transform duration-500"></div>
-                <span className="relative z-10 font-mono text-[10px] text-[#71717A] tracking-widest mb-4">{stat.label}</span>
-                <span className="relative z-10 text-5xl md:text-6xl font-black text-white group-hover:text-[#F43F5E] transition-colors duration-300">
-                  <AnimatedCounter from={0} to={stat.val} duration={2} isFloat={stat.float} suffix={stat.suffix} />
-                </span>
-                <span className="relative z-10 font-sans text-xs text-[#A1A1AA] mt-4">{stat.sub}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ----------------- 6. BUSINESS VALUE GRID ----------------- */}
       <section className="relative w-full py-32 px-6 md:px-24 z-10 border-t border-[#27272A] bg-transparent">
