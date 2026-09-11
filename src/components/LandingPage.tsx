@@ -195,10 +195,10 @@ export const LandingPage = ({ onEnterWorkspace }: LandingPageProps) => {
       </div>
 
       {/* ----------------- NAV ----------------- */}
-      <header className="fixed top-0 left-0 w-full p-6 md:p-10 z-50 flex justify-between items-center mix-blend-difference pointer-events-none">
-        <div className="flex items-center gap-6">
-          <div className="w-10 h-10 border border-[#F43F5E]/50 flex items-center justify-center relative overflow-hidden">
-            <span className="font-mono text-sm font-bold text-[#F43F5E]">AG</span>
+      <header className="fixed top-0 left-0 w-full p-6 md:p-10 z-50 flex justify-between items-center pointer-events-none">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 relative">
+            <img src="/aegis-logo.png" alt="Aegis Logo" className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(244,63,94,0.6)]" />
           </div>
           <span className="font-mono text-xs font-bold tracking-[0.3em] text-white">AEGIS-GHOST</span>
         </div>

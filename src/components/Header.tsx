@@ -14,10 +14,9 @@ export const Header = ({ activeWidgets, onToggleWidget }: HeaderProps) => {
   return (
     <header className="h-12 bg-surface-dark text-gray-300 flex items-center justify-between px-4 shrink-0 border-b border-ui-border gap-4 overflow-visible z-50 relative">
 
-      {/* ── Left: brand ── */}
       <div className="flex items-center gap-3 shrink-0">
         <div className="font-mono font-bold tracking-widest text-xs flex items-center gap-2 text-white">
-          <div className="w-2 h-2 bg-ui-accent rounded-none" />
+          <img src="/aegis-logo.png" alt="Aegis Logo" className="w-6 h-6 object-contain drop-shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
           AEGIS-GHOST
           <span className="text-gray-500 font-normal">// WORKSPACE</span>
         </div>

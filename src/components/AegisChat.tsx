@@ -317,11 +317,7 @@ export const AegisChat = () => {
           {/* Header */}
           <div className="h-10 border-b border-ui-border flex items-center px-4 bg-surface-alt shrink-0 justify-between">
             <div className="flex items-center gap-2">
-              <motion.div
-                className="w-1.5 h-1.5 rounded-full bg-ui-alert"
-                animate={{ opacity: [1, 0.3, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
+              <img src="/aegis-logo.png" alt="Aegis AI" className="w-4 h-4 object-contain drop-shadow-[0_0_6px_rgba(244,63,94,0.6)]" />
               <span className="font-mono text-xs font-bold text-ui-text">AEGIS-AI</span>
               <span className="font-mono text-[10px] text-ui-muted">// BILINGUAL ASSIST</span>
             </div>

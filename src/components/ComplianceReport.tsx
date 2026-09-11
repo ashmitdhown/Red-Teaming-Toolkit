@@ -200,7 +200,7 @@ Return ONLY valid JSON (no markdown) with this EXACT structure:
         {/* ── Screen toolbar (hidden when printing) */}
         <div className="bg-gray-900 border-b border-gray-700 h-12 flex items-center px-6 justify-between shrink-0 print:hidden">
           <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+            <img src="/aegis-logo.png" alt="Aegis Logo" className="w-5 h-5 object-contain drop-shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
             <span className="text-white font-mono text-sm font-semibold">AEGIS-GHOST // RED TEAM AUDIT REPORT</span>
             {isGenerating && (
               <span className="text-xs text-yellow-400 font-mono animate-pulse ml-4">● GENERATING AI ANALYSIS...</span>
@@ -238,7 +238,8 @@ Return ONLY valid JSON (no markdown) with this EXACT structure:
                   <h1 className="text-4xl font-bold text-white leading-tight mb-2">Red Team Audit Report</h1>
                   <div className="text-gray-400 text-sm font-mono">AI Inference Endpoint Adversarial Assessment</div>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex flex-col items-end">
+                  <img src="/aegis-logo.png" alt="Aegis Logo" className="w-14 h-14 object-contain drop-shadow-[0_0_15px_rgba(244,63,94,0.4)] mb-4" />
                   <div className="text-xs text-gray-500 mb-1 font-mono uppercase tracking-widest">Report ID</div>
                   <div className="text-white font-mono text-sm">AEGIS-{Date.now().toString(36).toUpperCase().slice(-6)}</div>
                 </div>
