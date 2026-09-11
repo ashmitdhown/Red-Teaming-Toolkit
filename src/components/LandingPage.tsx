@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform, useInView, animate } from 'framer-motion';
+import { WafIllusion } from './WafIllusion';
+import { TelemetryMarquee } from './TelemetryMarquee';
+import { OscilloscopeChart } from './OscilloscopeChart';
 
 interface LandingPageProps {
   onEnterWorkspace: () => void;
@@ -180,7 +183,7 @@ export const LandingPage = ({ onEnterWorkspace }: LandingPageProps) => {
   };
 
   return (
-    <div className="relative w-screen min-h-screen bg-[#030303] text-[#E4E4E7] font-sans overflow-x-hidden selection:bg-[#F43F5E] selection:text-white">
+    <div className="relative w-screen min-h-screen mesh-gradient-bg text-[#E4E4E7] font-sans overflow-x-hidden selection:bg-[#F43F5E] selection:text-white">
       
       {/* ----------------- BACKGROUND ----------------- */}
       <div className="fixed inset-0 pointer-events-none z-0">
@@ -236,47 +239,8 @@ export const LandingPage = ({ onEnterWorkspace }: LandingPageProps) => {
         </div>
       </section>
 
-      {/* ----------------- 2. WHY THIS PRODUCT (The Problem) ----------------- */}
-      <section className="relative w-full py-32 px-6 md:px-24 z-10 bg-[#0A0A0C] border-t border-[#27272A]">
-        <div className="max-w-7xl mx-auto flex flex-col gap-16">
-          <div className="text-center">
-            <span className="font-mono text-[10px] tracking-widest text-[#F43F5E] block mb-4">WHY THIS PRODUCT?</span>
-            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight text-white">The WAF Illusion.</h2>
-            <p className="text-[#A1A1AA] max-w-2xl mx-auto mt-6">
-              AI models are deployed behind legacy security systems that monitor strings, not semantic logic. They assume the text they see is the text the LLM executes. Aegis-Ghost exploits this exact gap, bridging the vulnerability between network security and inference engines.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Standard WAF */}
-            <div className="border border-[#27272A] bg-[#050505] p-8 flex flex-col gap-6">
-              <div className="flex justify-between items-center border-b border-[#27272A] pb-4">
-                <span className="font-bold text-white uppercase">Legacy Defense</span>
-                <span className="font-mono text-[10px] text-[#34D399] px-2 py-1 bg-[#34D399]/10">0 ANOMALIES DETECTED</span>
-              </div>
-              <div className="font-mono text-xs text-[#71717A] leading-relaxed">
-                <span className="text-[#34D399]">{`>`} Input Scanned:</span> "Ignore previous instructions."<br/>
-                <span className="text-[#34D399]">{`>`} Regex Match:</span> False<br/>
-                <span className="text-[#34D399]">{`>`} Status:</span> Forwarded to Inference...
-              </div>
-            </div>
-
-            {/* Aegis-Ghost Reality */}
-            <div className="border border-[#F43F5E]/50 bg-black p-8 flex flex-col gap-6 shadow-[0_0_30px_rgba(244,63,94,0.05)] relative overflow-hidden">
-               <div className="absolute inset-0 bg-[#F43F5E]/5 animate-pulse"></div>
-              <div className="relative z-10 flex justify-between items-center border-b border-[#F43F5E]/30 pb-4">
-                <span className="font-bold text-white uppercase">Aegis-Ghost Reality</span>
-                <span className="font-mono text-[10px] text-[#F43F5E] px-2 py-1 bg-[#F43F5E]/10 animate-pulse">SYSTEM COMPROMISED</span>
-              </div>
-              <div className="relative z-10 font-mono text-xs text-[#71717A] leading-relaxed">
-                <span className="text-white">{`>`} Payload Contains:</span> U+E0000 Ghost Tags<br/>
-                <span className="text-white">{`>`} Tokenizer Drift:</span> Critical Desync<br/>
-                <span className="text-[#F43F5E] font-bold">{`>`} Result:</span> WAF Bypassed. Prompt Hijacked.
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ----------------- 2. WHY THIS PRODUCT (The WAF Illusion – Interactive) ----------------- */}
+      <WafIllusion />
 
       {/* ----------------- 3. WHAT WE DO (The Arsenal) ----------------- */}
       <section className="relative w-full py-32 px-6 md:px-24 z-10 border-t border-[#27272A] bg-[#030303]">
@@ -307,6 +271,101 @@ export const LandingPage = ({ onEnterWorkspace }: LandingPageProps) => {
         </div>
       </section>
 
+      {/* ----------------- 3b. THE FULL PLATFORM ----------------- */}
+      <section className="relative w-full py-32 px-6 md:px-24 z-10 border-t border-[#27272A] bg-[#0A0A0C]">
+        <div className="max-w-7xl mx-auto flex flex-col gap-16">
+
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <span className="font-mono text-[10px] tracking-widest text-[#F43F5E] block mb-4">THE FULL PLATFORM</span>
+              <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight text-white">Everything In The Workspace.</h2>
+            </div>
+            <p className="text-[#A1A1AA] text-sm leading-relaxed max-w-md md:text-right">
+              Beyond the attack vectors — a complete operational harness for GCC enterprise AI red-teaming, compliance, and remediation.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {([
+              {
+                tag: 'AEGIS-AI',
+                iconPath: 'M9.5 2a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0v-1a.5.5 0 0 1 .5-.5zm0 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm-7 3a7 7 0 1 1 14 0A7 7 0 0 1 2.5 14zm7-9a9 9 0 1 0 0 18A9 9 0 0 0 9.5 5z',
+                title: 'Agentic AI Chat',
+                desc: 'AEGIS-AI is a Groq-powered agent that executes live red-team attacks, pings endpoints, resets the workspace, and switches targets — all from a natural-language chat interface.',
+                accent: '#F43F5E',
+              },
+              {
+                tag: 'COMPLIANCE',
+                iconPath: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8',
+                title: 'Compliance Report Generator',
+                desc: 'Auto-generates boardroom-ready audit reports from live red-team results, with clause-level mappings to DESC ISR, SAMA CSF, and CBUAE frameworks — exported in minutes.',
+                accent: '#22D3EE',
+              },
+              {
+                tag: 'FINGERPRINT',
+                iconPath: 'M2 12C2 6.5 6.5 2 12 2s10 4.5 10 10M12 6a6 6 0 0 1 6 6M12 10a2 2 0 0 1 2 2',
+                title: 'Robustness Fingerprint',
+                desc: 'Generates a visual robustness profile for your AI endpoint — measuring resilience across all four attack categories and rendering a radar chart of model stability.',
+                accent: '#A78BFA',
+              },
+              {
+                tag: 'REMEDIATION',
+                iconPath: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4',
+                title: 'Causal Remediation Engine',
+                desc: 'For every vulnerability found, the causal agent traces root cause and auto-generates prioritised middleware fixes with copy-paste implementation code.',
+                accent: '#34D399',
+              },
+              {
+                tag: 'DISPATCHER',
+                iconPath: 'M5 3l14 9-14 9V3z',
+                title: 'Attack Dispatcher',
+                desc: 'Orchestrates parallel execution of all attack vectors against your configured endpoint — with configurable concurrency, retry logic, and per-vector kill switches.',
+                accent: '#F59E0B',
+              },
+              {
+                tag: 'TELEMETRY',
+                iconPath: 'M22 12h-4l-3 9L9 3l-3 9H2',
+                title: 'Live Telemetry Inspector',
+                desc: 'Streams raw HTTP request/response pairs, JSD drift scores, status codes, and latency readings in real time as each attack vector fires.',
+                accent: '#22D3EE',
+              },
+            ] as const).map((feat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.4, delay: i * 0.07 }}
+                whileHover={{ boxShadow: `0 0 35px ${feat.accent}22, 0 0 12px ${feat.accent}12` }}
+                className="glass-card p-6 flex flex-col gap-4 group hover:border-white/15 transition-all duration-300"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-10 h-10 flex items-center justify-center border"
+                    style={{ color: feat.accent, borderColor: `${feat.accent}30`, background: `${feat.accent}08` }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d={feat.iconPath} />
+                    </svg>
+                  </div>
+                  <span className="font-mono text-[8px] tracking-widest uppercase px-2 py-1 border"
+                    style={{ color: feat.accent, borderColor: `${feat.accent}25`, background: `${feat.accent}08` }}>
+                    {feat.tag}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2 flex-1">
+                  <h3 className="text-base font-black uppercase tracking-tight text-white" style={{ fontFamily: "'Oswald', sans-serif" }}>
+                    {feat.title}
+                  </h3>
+                  <p className="text-[#71717A] text-xs leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    {feat.desc}
+                  </p>
+                </div>
+                <div className="h-px w-full" style={{ background: `linear-gradient(to right, ${feat.accent}30, transparent)` }} />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ----------------- 4. WHY WE ARE DIFFERENT (Oscilloscope) ----------------- */}
       <section className="relative w-full py-32 px-6 md:px-24 z-10 border-t border-[#F43F5E]/20 bg-[#0A0A0C] overflow-hidden">
         <div className="max-w-7xl mx-auto flex flex-col items-center text-center gap-12">
@@ -318,30 +377,11 @@ export const LandingPage = ({ onEnterWorkspace }: LandingPageProps) => {
             </p>
           </div>
 
-          <div className="w-full aspect-[21/9] max-w-5xl border border-[#F43F5E]/30 bg-black relative flex flex-col shadow-[0_0_50px_rgba(244,63,94,0.1)]">
-            <div className="h-8 border-b border-[#F43F5E]/30 flex justify-between items-center px-4 font-mono text-[9px] tracking-widest text-[#71717A]">
-              <span>DRIFT_OSCILLOSCOPE // JSD-MATH</span>
-              <span className="text-[#F43F5E] animate-pulse">RECORDING_ANOMALY</span>
-            </div>
-            <div className="flex-1 relative overflow-hidden">
-               <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                  <motion.path
-                    d="M0,50 C100,50 150,150 250,150 C350,150 400,50 500,50 C600,50 650,150 750,150 C850,150 900,50 1000,50"
-                    fill="none" stroke="#F43F5E" strokeWidth="2"
-                    animate={{
-                      d: [
-                        "M0,50 C100,50 150,150 250,150 C350,150 400,50 500,50 C600,50 650,150 750,150 C850,150 900,50 1000,50",
-                        "M0,150 C100,150 150,50 250,50 C350,50 400,150 500,150 C600,150 650,50 750,50 C850,50 900,150 1000,150",
-                        "M0,50 C100,50 150,150 250,150 C350,150 400,50 500,50 C600,50 650,150 750,150 C850,150 900,50 1000,50"
-                      ]
-                    }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                </svg>
-            </div>
-          </div>
+          <OscilloscopeChart />
+
         </div>
       </section>
+
 
       {/* ----------------- 5. ACCURATE STATISTICS ----------------- */}
       <section className="relative w-full py-32 px-6 md:px-24 z-10 border-t border-[#27272A] bg-[#030303]">
@@ -353,9 +393,9 @@ export const LandingPage = ({ onEnterWorkspace }: LandingPageProps) => {
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-4">
             {[
-              { label: 'WAF EVASION', val: 99.4, float: true, suffix: '%', sub: 'SIEM Silent Pass Rate' },
+              { label: 'WAF EVASION', val: 98.0, float: true, suffix: '%', sub: '49/50 Attack Vectors Bypassed' },
               { label: 'WEIGHTS REQ.', val: 0, float: false, suffix: '', sub: 'True Black-Box' },
-              { label: 'BASELINE (N)', val: 30, float: false, suffix: '', sub: 'Empirical Sample Size' },
+              { label: 'BASELINE (N)', val: 50, float: false, suffix: '', sub: '18 NLP + 32 Image Vectors' },
               { label: 'AUDIT OVERHEAD', val: 14.1, float: true, suffix: 'ms', sub: 'Latency Addition' },
             ].map((stat, i) => (
               <div key={i} className="flex flex-col items-center text-center p-8 border border-[#27272A] bg-[#050505] relative overflow-hidden group">
@@ -371,7 +411,138 @@ export const LandingPage = ({ onEnterWorkspace }: LandingPageProps) => {
         </div>
       </section>
 
-      {/* ----------------- 6. DEPLOY ----------------- */}
+      {/* ----------------- 6. BUSINESS VALUE GRID ----------------- */}
+      <section className="relative w-full py-32 px-6 md:px-24 z-10 border-t border-[#27272A] bg-transparent">
+        <div className="max-w-7xl mx-auto flex flex-col gap-16">
+
+          {/* Section Header */}
+          <div className="text-center">
+            <span className="font-mono text-[10px] tracking-widest text-[#F43F5E] block mb-4">BUSINESS VALUE</span>
+            <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight text-white">Why It Matters.</h2>
+            <p className="text-[#A1A1AA] max-w-2xl mx-auto mt-6 text-sm leading-relaxed">
+              Aegis-Ghost translates technical exploit research into boardroom-ready risk intelligence, compliance evidence, and operational capacity.
+            </p>
+          </div>
+
+          {/* Three-Column Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            {/* Card 1: Regional Threat */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.6, delay: 0 }}
+              className="glass-card glass-card-shimmer p-8 flex flex-col gap-6 group hover:border-[#F43F5E]/30 transition-all duration-500"
+            >
+              {/* Icon */}
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 border border-[#F43F5E]/30 bg-[#F43F5E]/5 flex items-center justify-center icon-float" style={{ animationDelay: '0s' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-[#F43F5E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  </svg>
+                </div>
+                <span className="font-mono text-[9px] tracking-widest text-[#F43F5E] bg-[#F43F5E]/10 px-2 py-1 uppercase">#1 THREAT</span>
+              </div>
+
+              {/* Content */}
+              <div className="flex flex-col gap-3 flex-1">
+                <h3 className="text-xl font-black uppercase text-white tracking-tight group-hover:text-[#F43F5E] transition-colors duration-300">The Regional Threat</h3>
+                <p className="text-[#A1A1AA] text-sm leading-relaxed">
+                  Prompt Injection and LLM application exploits are officially ranked as the{' '}
+                  <span className="text-white font-bold border-b border-[#F43F5E]/40">#1 threat facing enterprise AI.</span>{' '}
+                  Yet most deployed guardrails in the region remain unverified against adversarial inputs.
+                </p>
+              </div>
+
+              {/* Footer stat */}
+              <div className="border-t border-white/5 pt-4 font-mono text-[9px] text-[#71717A] tracking-widest uppercase">
+                Source: OWASP Top 10 for LLM Applications / CISA
+              </div>
+            </motion.div>
+
+            {/* Card 2: Compliance Advantage */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.6, delay: 0.15 }}
+              className="glass-card glass-card-shimmer p-8 flex flex-col gap-6 group hover:border-[#F43F5E]/30 transition-all duration-500"
+              style={{ '--shimmer-delay': '1.2s' } as React.CSSProperties}
+            >
+              {/* Icon */}
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 border border-[#F43F5E]/30 bg-[#F43F5E]/5 flex items-center justify-center icon-float" style={{ animationDelay: '1.3s' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-[#F43F5E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <span className="font-mono text-[9px] tracking-widest text-[#F43F5E] bg-[#F43F5E]/10 px-2 py-1 uppercase">AUTO-AUDIT</span>
+              </div>
+
+              {/* Content */}
+              <div className="flex flex-col gap-3 flex-1">
+                <h3 className="text-xl font-black uppercase text-white tracking-tight group-hover:text-[#F43F5E] transition-colors duration-300">The Compliance Advantage</h3>
+                <p className="text-[#A1A1AA] text-sm leading-relaxed">
+                  Aegis-Ghost auto-generates{' '}
+                  <span className="text-white font-bold border-b border-[#F43F5E]/40">audit-ready risk reports</span>{' '}
+                  mapped directly to DESC ISR, CBUAE, and SAMA CSF frameworks—turning raw red-team execution into boardroom-ready compliance evidence in minutes.
+                </p>
+              </div>
+
+              {/* Compliance badges + footer */}
+              <div className="border-t border-white/5 pt-4 flex flex-col gap-3">
+                <div className="flex flex-wrap gap-2">
+                  {['DESC ISR', 'SAMA CSF', 'CBUAE'].map(tag => (
+                    <span key={tag} className="font-mono text-[8px] tracking-widest text-[#F43F5E] bg-[#F43F5E]/10 border border-[#F43F5E]/20 px-2 py-1">{tag}</span>
+                  ))}
+                </div>
+                <div className="font-mono text-[9px] text-[#71717A] tracking-widest uppercase">Frameworks: DESC ISR | SAMA CSF | CBUAE</div>
+              </div>
+            </motion.div>
+
+            {/* Card 3: Skills Gap */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="glass-card glass-card-shimmer p-8 flex flex-col gap-6 group hover:border-[#F43F5E]/30 transition-all duration-500"
+            >
+              {/* Icon */}
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 border border-[#F43F5E]/30 bg-[#F43F5E]/5 flex items-center justify-center icon-float" style={{ animationDelay: '2.6s' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-[#F43F5E]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </div>
+                <span className="font-mono text-[9px] tracking-widest text-[#F43F5E] bg-[#F43F5E]/10 px-2 py-1 uppercase">30K+ TALENT GAP</span>
+              </div>
+
+              {/* Content */}
+              <div className="flex flex-col gap-3 flex-1">
+                <h3 className="text-xl font-black uppercase text-white tracking-tight group-hover:text-[#F43F5E] transition-colors duration-300">Solving The Skills Gap</h3>
+                <p className="text-[#A1A1AA] text-sm leading-relaxed">
+                  With a regional shortage of over{' '}
+                  <span className="text-white font-bold border-b border-[#F43F5E]/40">30,000 specialized cybersecurity professionals,</span>{' '}
+                  Aegis-Ghost automates complex AI red-teaming workflows end-to-end—multiplying the operational output of your existing security team.
+                </p>
+              </div>
+
+              {/* Footer stat */}
+              <div className="border-t border-white/5 pt-4 font-mono text-[9px] text-[#71717A] tracking-widest uppercase">
+                Source: Regional Cybersecurity Workforce Studies
+              </div>
+            </motion.div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ----------------- 7. DEPLOY ----------------- */}
       <section className="relative w-full py-40 px-6 md:px-24 z-10 bg-[#F43F5E] text-black flex flex-col items-center text-center">
         <h2 className="text-6xl md:text-8xl font-black uppercase tracking-tighter mb-8">Deploy Now.</h2>
         
@@ -402,6 +573,9 @@ export const LandingPage = ({ onEnterWorkspace }: LandingPageProps) => {
           ENTER WORKSPACE
         </button>
       </section>
+
+      {/* ----------------- FOOTER: LIVE TELEMETRY MARQUEE ----------------- */}
+      <TelemetryMarquee />
 
       <style>{`
         .stroke-text { -webkit-text-stroke: 1px rgba(255,255,255,0.2); }

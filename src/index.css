@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Rajdhani:wght@300;400;500;600;700&family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -226,83 +226,68 @@
   }
 }
 
-/* ── PDF: zero-margin removes URL / date / title injected by browser ── */
-@page {
-  size: A4;
-  margin: 0mm;
+@keyframes mesh-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-@media print {
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    color-adjust: exact !important;
-  }
+.mesh-gradient-bg {
+  background: 
+    radial-gradient(ellipse 80% 60% at 20% 40%, rgba(244,63,94,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 70%, rgba(139,92,246,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 40% at 50% 10%, rgba(244,63,94,0.04) 0%, transparent 60%),
+    #030303;
+  background-size: 400% 400%;
+  animation: mesh-shift 18s ease infinite;
+}
 
-  /* Hide everything at body level and force white background */
-  html, body {
-    background-color: white !important;
-    background: white !important;
-  }
-  body > * { display: none !important; }
-  body > #root { display: block !important; }
+@keyframes card-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
 
-  /* Hide everything inside React root except the report */
-  #root > * { display: none !important; }
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  position: relative;
+  overflow: hidden;
+}
 
-  /* ── The report overlay ── */
-  #root #aegis-report {
-    display: block !important;
-    position: static !important;
-    width: 100% !important;
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-    inset: auto !important;
-    z-index: auto !important;
-    background: white !important;
-  }
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(244,63,94,0.4), transparent);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
 
-  /* Ensure the toolbar remains hidden! */
-  #aegis-report .print\:hidden {
-    display: none !important;
-  }
+.glass-card:hover::before {
+  opacity: 1;
+}
 
-  /* Only strip flex from the outermost scroll container to fix height propagation */
-  #aegis-report > div:not(.print\:hidden) {
-    display: block !important;
-    height: auto !important;
-    width: 100% !important;
-    overflow: visible !important;
-    flex: none !important;
-  }
+.glass-card-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 25%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+  animation: card-shimmer 3.5s ease-in-out infinite;
+}
 
-  /* Ensure all inner content can overflow visibly for printing */
-  #aegis-report * {
-    overflow: visible !important;
-    max-height: none !important;
-  }
+@keyframes float-up {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
 
-  /* Content cards */
-  #aegis-report .shadow-lg { box-shadow: none !important; }
-  #aegis-report .my-6 { margin: 0 !important; }
-  #aegis-report .max-w-4xl { max-width: 100% !important; }
-
-  /* Compensate for zero page margins — add padding to content */
-  #aegis-report .px-10 { padding-left: 1.5cm !important; padding-right: 1.5cm !important; }
-
-  /* Preserve grid layout for metric cards and infographic rows */
-  #aegis-report .grid { display: grid !important; }
-  #aegis-report .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-  #aegis-report .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-  #aegis-report .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-  #aegis-report .grid > * { flex: unset !important; }
-
-  /* Color preservation */
-  #aegis-report .bg-gray-900 { background-color: #111827 !important; }
-  #aegis-report .bg-gray-50  { background-color: #f9fafb !important; }
-
-  /* Page break controls */
-  .print\:break-before-page { break-before: page !important; }
-  .print\:break-inside-avoid { break-inside: avoid !important; }
+.icon-float {
+  animation: float-up 4s ease-in-out infinite;
 }
