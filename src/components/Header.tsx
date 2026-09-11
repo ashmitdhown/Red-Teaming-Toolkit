@@ -1,6 +1,7 @@
 import { useAppContext } from '../AppContext';
 import { OPTIONAL_WIDGETS } from '../App';
 import type { WidgetId } from '../App';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface HeaderProps {
   activeWidgets: Set<WidgetId>;
@@ -8,10 +9,10 @@ interface HeaderProps {
 }
 
 export const Header = ({ activeWidgets, onToggleWidget }: HeaderProps) => {
-  const { appState, resetApp } = useAppContext();
+  const { appState, resetApp, isChatOpen, toggleChat } = useAppContext();
 
   return (
-    <header className="h-12 bg-surface-dark text-gray-300 flex items-center justify-between px-4 shrink-0 border-b border-ui-border gap-4 overflow-hidden">
+    <header className="h-12 bg-surface-dark text-gray-300 flex items-center justify-between px-4 shrink-0 border-b border-ui-border gap-4 overflow-visible z-50 relative">
 
       {/* ── Left: brand ── */}
       <div className="flex items-center gap-3 shrink-0">
@@ -65,6 +66,28 @@ export const Header = ({ activeWidgets, onToggleWidget }: HeaderProps) => {
             {appState}
           </span>
         </span>
+        <div className="relative flex items-center">
+          <AnimatePresence>
+            {!isChatOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="absolute right-0 top-[120%] mt-1 w-52 bg-surface-alt border border-ui-alert shadow-lg text-ui-text text-[9px] p-2 z-50 pointer-events-none"
+              >
+                <div className="absolute -top-[5px] right-6 w-2 h-2 bg-surface-alt border-t border-l border-ui-alert rotate-45" />
+                <div className="text-ui-alert font-bold mb-0.5">AEGIS-AI</div>
+                <div className="text-ui-muted">Hi! I can help you analyze vulnerabilities. Click to chat.</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <button
+            onClick={toggleChat}
+            className={`px-2 py-0.5 font-bold transition-colors cursor-pointer text-[10px] tracking-widest border ${isChatOpen ? 'bg-ui-accent text-black border-ui-accent' : 'text-ui-accent hover:bg-ui-accent hover:text-black border-ui-accent'}`}
+          >
+            [ AEGIS-AI ]
+          </button>
+        </div>
         <button
           onClick={resetApp}
           className="text-ui-alert hover:bg-ui-alert hover:text-black border border-ui-alert px-2 py-0.5 font-bold transition-colors cursor-pointer text-[10px] tracking-widest"

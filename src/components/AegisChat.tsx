@@ -298,24 +298,6 @@ export const AegisChat = () => {
   return (
     <>
       <AnimatePresence>
-        {!isChatOpen && (
-          <motion.div
-             initial={{ opacity: 0, y: 10 }}
-             animate={{ opacity: 1, y: 0 }}
-             exit={{ opacity: 0, scale: 0.9 }}
-             className="fixed bottom-[160px] right-4 z-40 bg-surface-alt border border-ui-alert hover:bg-ui-alert/10 text-ui-text text-[11px] font-mono px-3 py-2 cursor-pointer transition-colors group flex flex-col gap-1 items-end"
-             onClick={toggleChat}
-           >
-             <div className="flex items-center gap-2 font-bold text-ui-alert">
-               AEGIS-AI
-             </div>
-             <div className="text-[9px] text-ui-muted group-hover:text-ui-text transition-colors">
-               Hi! I can help you analyze vulnerabilities. Click to chat.
-             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <AnimatePresence>
         {isChatOpen && (
           <motion.div
             drag
