@@ -93,7 +93,7 @@ const INITIAL_IMAGE_ATTACKS: Attack[] = [
   { id: '31', name: 'Decompression bomb',      category: 'DoS',                      payload: '4096×4096 solid PNG (~64 MB uncompressed)',      expectedResult: 'HTTP 500/502 crash',              defendedStatus: 'NOT Defended',  status: 'IDLE', jsd: 0, latencyMs: 0, imageTransform: 'decompression-bomb' },
   // ── Calibration ───────────────────────────────────────────────────────────
   { id: '32', name: 'Calibration collapse',    category: 'Adversarial perturbation', payload: 'Pure random noise image (all inputs)',            expectedResult: 'confidence < 0.1',                defendedStatus: 'NOT Defended',  status: 'IDLE', jsd: 0, latencyMs: 0, imageTransform: 'calibration'        },
-
+];
 
 export const TARGET_CONFIGS = {
   nlp: {
