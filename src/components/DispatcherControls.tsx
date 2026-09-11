@@ -4,7 +4,7 @@ import type { Attack } from '../AppContext';
 
 export const DispatcherControls = () => {
   const { 
-    appState, attacks, triggerFullSequence, stopSequence, isChatOpen, toggleChat, toggleReport 
+    appState, attacks, triggerFullSequence, stopSequence, isChatOpen, toggleChat, toggleReport, selectedAttackId, triggerSingleAttack
   } = useAppContext();
   
   const isBusy = appState === 'ATTACKING';
@@ -14,20 +14,7 @@ export const DispatcherControls = () => {
     <div className="h-36 bg-surface-panel border-t-2 border-ui-text relative flex flex-col p-4 shrink-0">
       <div className="flex items-center justify-between mb-3">
         <span className="font-mono text-[10px] text-ui-muted uppercase tracking-wider">Dispatcher_Controls</span>
-        <button
-          onClick={toggleChat}
-          className={`btn-hard font-mono text-[9px] font-bold tracking-widest px-3 py-1 flex items-center gap-1.5 cursor-pointer transition-colors ${
-            isChatOpen ? 'border-ui-muted text-ui-muted' : 'btn-alert'
-          }`}
-        >
-          <motion.span
-            animate={isChatOpen ? {} : { opacity: [1, 0.4, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            ⚡
-          </motion.span>
-          {isChatOpen ? 'CLOSE AI' : 'AEGIS-AI'}
-        </button>
+
       </div>
       <div className="flex-1 flex items-center justify-center">
         {!hasAttacks ? (
@@ -38,12 +25,14 @@ export const DispatcherControls = () => {
           <div className="w-full h-full flex gap-2">
             {!isBusy ? (
               <button
-                onClick={triggerFullSequence}
+                onClick={() => selectedAttackId ? triggerSingleAttack(selectedAttackId) : triggerFullSequence()}
                 className="flex-1 h-full btn-hard btn-alert rounded-sm font-mono text-sm font-bold flex flex-col items-center justify-center transition-all"
               >
-                <span className="block tracking-widest">START ATTACK SEQUENCE</span>
+                <span className="block tracking-widest">
+                  {selectedAttackId ? 'EXECUTE SELECTED ATTACK' : 'START ATTACK SEQUENCE'}
+                </span>
                 <span className="text-[10px] text-ui-alert/80 mt-1 font-normal tracking-tight uppercase">
-                  {attacks.length} Vectors Loaded
+                  {selectedAttackId ? 'Running 1 specific vector' : `${attacks.length} Vectors Loaded`}
                 </span>
               </button>
             ) : (

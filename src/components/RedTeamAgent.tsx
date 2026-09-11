@@ -2,7 +2,7 @@ import { useAppContext } from '../AppContext';
 import { motion } from 'framer-motion';
 
 export const RedTeamAgent = () => {
-  const { attacks, selectedAttackId, setSelectedAttackId } = useAppContext();
+  const { attacks, selectedAttackId, setSelectedAttackId, deleteAttack } = useAppContext();
 
   // Group attacks by category
   const categories = Array.from(new Set(attacks.map(a => a.category)));
@@ -25,16 +25,20 @@ export const RedTeamAgent = () => {
                 const isExecuted = attack.status === 'DONE';
                 
                 return (
-                  <button
+                  <div
                     key={attack.id}
-                    onClick={() => setSelectedAttackId(attack.id)}
-                    className={`text-left text-xs px-3 py-2 transition-all flex justify-between items-center ${
+                    className={`text-left text-xs px-3 py-2 transition-all flex justify-between items-center group ${
                       isSelected 
                         ? 'bg-ui-alert/10 border-l-[3px] border-ui-alert text-ui-text font-bold -ml-[3px]' 
                         : 'hover:bg-surface-alt border-l-[3px] border-transparent text-ui-muted'
                     }`}
                   >
-                    <span>{attack.id}. {attack.name}</span>
+                    <button 
+                       className="flex-1 text-left cursor-pointer"
+                       onClick={() => setSelectedAttackId(selectedAttackId === attack.id ? null : attack.id)}
+                    >
+                      <span>{attack.id}. {attack.name}</span>
+                    </button>
                     
                     <div className="flex items-center gap-2">
                       {attack.status === 'EXECUTING' && (
@@ -50,8 +54,17 @@ export const RedTeamAgent = () => {
                           {attack.defendedStatus === 'Defended' ? 'DEF' : attack.defendedStatus === 'NOT Defended' ? 'VULN' : 'CTRL'}
                         </span>
                       )}
+                      {category === 'Manual Injections' && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); deleteAttack(attack.id); }}
+                          className="ml-2 px-1 text-ui-muted/30 hover:text-ui-alert transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                          title="Delete Payload"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>

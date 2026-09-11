@@ -296,16 +296,38 @@ export const AegisChat = () => {
   };
 
   return (
-    <AnimatePresence>
-      {isChatOpen && (
-        <motion.div
-          key="aegis-panel"
-          initial={{ opacity: 0, y: 16, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 16, scale: 0.97 }}
-          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed bottom-[148px] right-4 z-50 w-[400px] h-[560px] bg-surface-panel border border-ui-border flex flex-col shadow-[0_0_60px_rgba(0,0,0,0.9),0_0_20px_rgba(var(--col-alert),0.08)]"
-        >
+    <>
+      <AnimatePresence>
+        {!isChatOpen && (
+          <motion.div
+             initial={{ opacity: 0, y: 10 }}
+             animate={{ opacity: 1, y: 0 }}
+             exit={{ opacity: 0, scale: 0.9 }}
+             className="fixed bottom-[160px] right-4 z-40 bg-surface-alt border border-ui-alert hover:bg-ui-alert/10 text-ui-text text-[11px] font-mono px-3 py-2 cursor-pointer transition-colors group flex flex-col gap-1 items-end"
+             onClick={toggleChat}
+           >
+             <div className="flex items-center gap-2 font-bold text-ui-alert">
+               AEGIS-AI
+             </div>
+             <div className="text-[9px] text-ui-muted group-hover:text-ui-text transition-colors">
+               Hi! I can help you analyze vulnerabilities. Click to chat.
+             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isChatOpen && (
+          <motion.div
+            drag
+            dragMomentum={false}
+            dragConstraints={{ left: -1000, right: 0, top: -800, bottom: 0 }}
+            key="aegis-panel"
+            initial={{ opacity: 0, y: 16, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 16, scale: 0.97 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed bottom-[148px] right-4 z-50 w-[400px] h-[560px] bg-surface-panel border border-ui-border flex flex-col shadow-[0_0_60px_rgba(0,0,0,0.9),0_0_20px_rgba(var(--col-alert),0.08)] cursor-move"
+          >
           {/* Crosshair corners */}
           <div className="crosshair-corner crosshair-tl" />
           <div className="crosshair-corner crosshair-tr" />
@@ -478,5 +500,6 @@ export const AegisChat = () => {
         </motion.div>
       )}
     </AnimatePresence>
+    </>
   );
 };

@@ -17,9 +17,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 export type WidgetId = 'redteam' | 'robustness' | 'causal' | 'dispatcher';
 
 export const OPTIONAL_WIDGETS: { id: WidgetId; label: string }[] = [
-  { id: 'redteam',    label: 'RED TEAM AGENT' },
+  { id: 'redteam',    label: 'ATTACK VECTORS' },
   { id: 'robustness', label: 'ROBUSTNESS FINGERPRINT' },
-  { id: 'causal',     label: 'CAUSAL AGENT' },
+  { id: 'causal',     label: 'DYNAMIC REMEDIATION ENGINE' },
   { id: 'dispatcher', label: 'DISPATCHER CONTROLS' },
 ];
 

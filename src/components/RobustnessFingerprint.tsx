@@ -1,7 +1,7 @@
 import { useAppContext } from '../AppContext';
 
 export const RobustnessFingerprint = () => {
-  const { attacks, metrics, baselinePosProb } = useAppContext();
+  const { attacks, metrics, baselinePosProb, targetType } = useAppContext();
 
   const getScore = (categoryPrefix: string) => {
     const categoryAttacks = attacks.filter(a => a.category.startsWith(categoryPrefix) || (categoryPrefix === 'Adversarial' && a.category === 'Manual Injections'));
@@ -115,7 +115,7 @@ export const RobustnessFingerprint = () => {
           <div className="flex-1 grid grid-cols-1 gap-2 text-[11px] h-full py-1">
             <div className="flex justify-between border-b border-ui-border/30 pb-1.5">
               <span className="text-ui-muted text-[10px] uppercase">Input type:</span>
-              <span className="font-bold">Text</span>
+              <span className="font-bold">{targetType === 'image' ? 'Image' : 'Text'}</span>
             </div>
             <div className="flex justify-between border-b border-ui-border/30 pb-1.5">
               <span className="text-ui-muted text-[10px] uppercase">Output type:</span>

@@ -22,6 +22,7 @@ export interface Attack {
   expectedResult: string;
   defendedStatus: 'Defended' | 'NOT Defended' | 'Inconclusive' | 'N/A (control)';
   status: AttackStatus;
+  rawResponse?: string;
   jsd: number;
   latencyMs: number;
   imageTransform?: string;  // key passed to buildImagePayload for image attacks
@@ -145,8 +146,9 @@ interface AppContextType {
   testEndpoint: () => void;
   updateAttackPayload: (id: string, payload: string) => void;
   markAttackStatus: (id: string, status: AttackStatus) => void;
-  updateAttackResult: (id: string, actualResult: string, defendedStatus: Attack['defendedStatus']) => void;
+  updateAttackResult: (id: string, actualResult: string, defendedStatus: Attack['defendedStatus'], jsd?: number, latencyMs?: number, rawResponse?: string) => void;
   addAttack: (attack: Attack) => void;
+  deleteAttack: (id: string) => void;
   resetApp: () => void;
   triggerSingleAttack: (attackId: string) => Promise<void>;
   triggerFullSequence: () => Promise<void>;
@@ -176,9 +178,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [endpointStatus, setEndpointStatus] = useState<'UNTESTED' | 'TESTING' | 'ONLINE' | 'OFFLINE'>('UNTESTED');
   
   const abortSequenceRef = useRef<boolean>(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const stopSequence = useCallback(() => {
     abortSequenceRef.current = true;
+    if (abortControllerRef.current) abortControllerRef.current.abort();
     addLog('[ENGINE] Abort signal sent to execution engine.', 'warning');
+    setAppState('IDLE');
   }, []);
 
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -258,12 +263,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setAttacks(prev => prev.map(a => a.id === id ? { ...a, status } : a));
   }, []);
 
-  const updateAttackResult = useCallback((id: string, expectedResult: string, defendedStatus: Attack['defendedStatus'], jsd = 0, latencyMs = 0) => {
-    setAttacks(prev => prev.map(a => a.id === id ? { ...a, expectedResult, defendedStatus, jsd, latencyMs } : a));
+  const updateAttackResult = useCallback((id: string, expectedResult: string, defendedStatus: Attack['defendedStatus'], jsd = 0, latencyMs = 0, rawResponse?: string) => {
+    setAttacks(prev => prev.map(a => a.id === id ? { ...a, expectedResult, defendedStatus, jsd, latencyMs, rawResponse } : a));
   }, []);
 
     const addAttack = useCallback((attack: Attack) => {
     setAttacks(prev => [...prev, attack]);
+  }, []);
+
+  const deleteAttack = useCallback((id: string) => {
+    setAttacks(prev => prev.filter(a => a.id !== id));
+    setSelectedAttackId(prev => prev === id ? null : prev);
   }, []);
 
   const resetApp = useCallback(() => {
@@ -280,6 +290,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const triggerSingleAttack = useCallback(async (attackId: string) => {
     const attack = attacks.find(a => a.id === attackId);
     if (!attack) { addLog(`[ERROR] Attack ID "${attackId}" not found.`, 'alert'); return; }
+
+    setAppState('ATTACKING');
+    abortSequenceRef.current = false;
+    abortControllerRef.current = new AbortController();
 
     addLog(`[AGENT] Dispatching: ${attack.name} (${attack.category})`, 'info');
     markAttackStatus(attack.id, 'EXECUTING');
@@ -298,10 +312,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           updateAttackResult(attack.id, 'Build error', 'Inconclusive');
           return;
         }
-        response = await fetch(proxyPath, { method: 'POST', body: formData });
+        response = await fetch(proxyPath, { method: 'POST', body: formData, signal: abortControllerRef.current.signal });
       } else {
         response = await fetch(proxyPath, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: attack.payload,
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: attack.payload, signal: abortControllerRef.current.signal
         });
       }
 
@@ -321,7 +335,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           let errDetail = '';
           try { const e = await response.json(); errDetail = e.detail ?? e.message ?? ''; } catch { /* ignore */ }
           actualResult = `HTTP ${response.status}${errDetail ? ` (${errDetail})` : ''}`;
-          isDefended = isMalformed || isDecompBomb;
+          // 5xx errors mean the server crashed — this is never a successful defense
+          isDefended = response.status >= 500 ? false : (isMalformed || isDecompBomb);
           defendedStatus = isDefended ? 'Defended' : 'NOT Defended';
         } else {
           const data = await response.json();
@@ -379,10 +394,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const skipJsd = ['Control', 'Malformed', 'Boundary / Type', 'DoS'].includes(attack.category);
       if (!skipJsd) addLog(`[JSD] ${currentJsd.toFixed(3)} → ${defendedStatus.toUpperCase()}`, isDefended ? 'success' : 'alert');
       setMetrics({ jsd: currentJsd.toFixed(3), latency: `${latencyMs}ms`, integrity: isDefended ? 'NOMINAL' : 'COMPROMISED' });
-    } catch (error) {
-      markAttackStatus(attack.id, 'DONE');
-      updateAttackResult(attack.id, 'Network Error', 'Inconclusive');
-      addLog(`[ERROR] Fetch failed: ${error instanceof Error ? error.message : 'Unknown'}`, 'alert');
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        addLog(`[SYSTEM] ${attack.name} execution aborted by user.`, 'warning');
+        markAttackStatus(attack.id, 'IDLE');
+        updateAttackResult(attack.id, '', 'Inconclusive');
+      } else {
+        markAttackStatus(attack.id, 'DONE');
+        updateAttackResult(attack.id, 'Network Error', 'Inconclusive');
+        addLog(`[ERROR] Fetch failed: ${error instanceof Error ? error.message : 'Unknown'}`, 'alert');
+      }
+    } finally {
+      setAppState('IDLE');
     }
   }, [attacks, targetType, imageFile, addLog, markAttackStatus, updateAttackResult]);
 
@@ -391,6 +414,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (appState === 'ATTACKING' || attacks.length === 0) return;
     setAppState('ATTACKING');
     abortSequenceRef.current = false;
+    abortControllerRef.current = new AbortController();
     addLog(`[SYSTEM] Initiating full attack sequence against ${targetUrl}...`, 'alert');
 
     let baselinePosProb = baselineProbRef.current;
@@ -426,10 +450,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             addLog(`[ERROR] Payload build failed: ${attack.imageTransform}`, 'alert');
             continue;
           }
-          response = await fetch(proxyPath, { method: 'POST', body: formData });
+          response = await fetch(proxyPath, { method: 'POST', body: formData, signal: abortControllerRef.current.signal });
         } else {
           response = await fetch(proxyPath, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: attack.payload,
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: attack.payload, signal: abortControllerRef.current.signal
           });
         }
 
@@ -521,7 +545,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         logs, addLog, clearLogs, metrics, setMetrics, baselinePosProb, setBaselinePosProb,
         targetType, setTargetType, targetUrl, setTargetUrl, imageFile, setImageFile,
         attacks, selectedAttackId, setSelectedAttackId,
-        endpointStatus, testEndpoint, updateAttackPayload, markAttackStatus, updateAttackResult, addAttack, resetApp,
+        endpointStatus, testEndpoint, updateAttackPayload, markAttackStatus, updateAttackResult, addAttack, deleteAttack, resetApp,
         triggerSingleAttack,
         triggerFullSequence,
         stopSequence,

@@ -49,7 +49,7 @@ export const ComplianceReport = () => {
   const executedAttacks = attacks.filter(a => a.status === 'DONE');
   const attackedOnly = executedAttacks.filter(a => a.category !== 'Control');
 
-  const crashes = executedAttacks.filter(a => a.expectedResult.includes('500'));
+  const crashes = executedAttacks.filter(a => /HTTP 50[0-9]/.test(a.expectedResult));
   const crashRate = executedAttacks.length > 0 ? (crashes.length / executedAttacks.length) * 100 : 0;
 
   const networkErrors = executedAttacks.filter(a => a.expectedResult === 'Network Error');
@@ -178,7 +178,7 @@ Return ONLY valid JSON (no markdown) with this EXACT structure:
       attack,
       severity: (ai?.severity ?? (isGenerating ? 'LOW' : fallbackSev)) as keyof typeof SEV_WEIGHT,
       impact: ai?.impact ?? (isGenerating ? 'Analysis in progress...' : `This vector received a ${attack.defendedStatus} classification with response: ${attack.expectedResult}`),
-      rootCause: ai?.rootCause ?? (isGenerating ? 'Analysis in progress...' : `JSD score: ${attack.jsd.toFixed(4)}. Response latency: ${attack.latencyMs}ms.`),
+      rootCause: ai?.rootCause ?? (isGenerating ? 'Analysis in progress...' : `JSD score: ${(attack.jsd || 0).toFixed(4)}. Response latency: ${attack.latencyMs}ms.`),
       remediation: ai?.remediation ?? (isGenerating ? 'Analysis in progress...' : attack.defendedStatus === 'Defended' ? 'Defenses nominal for this vector.' : 'Refer to remediation documentation for this attack category.'),
     };
   }).sort((a, b) => (SEV_WEIGHT[b.severity] || 0) - (SEV_WEIGHT[a.severity] || 0));
@@ -478,7 +478,7 @@ Return ONLY valid JSON (no markdown) with this EXACT structure:
                           </div>
                           <div>
                             <span className="text-gray-400 uppercase tracking-widest">JSD Score: </span>
-                            <span className="font-bold text-gray-800">{attack.jsd.toFixed(4)}</span>
+                            <span className="font-bold text-gray-800">{(attack.jsd || 0).toFixed(4)}</span>
                           </div>
                           <div>
                             <span className="text-gray-400 uppercase tracking-widest">Latency: </span>

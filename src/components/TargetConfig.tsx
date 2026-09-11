@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
+import { evaluateManualInjectionWithLLM } from '../utils/llmEvaluator';
 import { useAppContext, TARGET_CONFIGS } from '../AppContext';
 import type { TargetType } from '../AppContext';
 import { calculateJSD } from '../utils';
@@ -20,6 +21,7 @@ export const TargetConfig = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageContext, setImageContext] = useState("");
   const [nlpJson, setNlpJson] = useState(NLP_DEFAULT_JSON);
   const [isSending, setIsSending] = useState(false);
 
@@ -35,8 +37,8 @@ export const TargetConfig = () => {
     let isDef = false;
     let currentJsd = 0;
 
-    if (status === 500) {
-      resultText = 'HTTP 500 (Server Crash)';
+    if (status >= 500) {
+      resultText = `HTTP ${status} (Server Crash/Timeout)`;
       defStatus = 'NOT Defended';
       isDef = false;
     } else if (status === 422 || status === 400 || status === 405) {
@@ -96,9 +98,10 @@ export const TargetConfig = () => {
     
     // Create manual attack if none is selected
     let attackId = activeAttack?.id;
+    let currentAttack = activeAttack;
     if (!attackId) {
       attackId = 'manual-' + Date.now();
-      addAttack({
+      currentAttack = {
         id: attackId,
         name: 'Manual Payload',
         category: 'Manual Injections',
@@ -106,15 +109,16 @@ export const TargetConfig = () => {
         expectedResult: 'N/A',
         defendedStatus: 'Inconclusive',
         status: 'IDLE'
-      });
+      };
+      addAttack(currentAttack);
     }
     
     markAttackStatus(attackId, 'EXECUTING');
     addLog(`Sending NLP payload → ${targetUrl}`, 'info');
     
-    const startTime = Date.now();
     try {
       const body = JSON.parse(nlpJson);
+      const startTime = Date.now();
       const res = await fetch('/api/nlp/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -124,13 +128,35 @@ export const TargetConfig = () => {
       const data = await res.json().catch(() => ({}));
       addLog(`Response [${res.status}]: ${JSON.stringify(data)}`, res.ok ? 'success' : 'warning');
       
-      const currentAttack = attacks.find(a => a.id === attackId) || { category: 'Manual Injections' };
-      const { res: resultText, def, currentJsd, isDef } = evaluateDefense(res.status, data, currentAttack);
+      let resultText = '';
+      let def: Attack['defendedStatus'] = 'Inconclusive';
+      let currentJsd = 0;
+      let isDef = false;
+
+      if (currentAttack && currentAttack.category === 'Manual Injections' && res.ok && res.status >= 200 && res.status < 300) {
+        addLog(`Analyzing manual response with LLM...`, 'info');
+        const conf = data.confidence || 0;
+        const label = data.label || 'unknown';
+        resultText = `Label: ${label} (Conf: ${conf.toFixed(2)})`;
+        
+        const llmEval = await evaluateManualInjectionWithLLM(body, label, conf);
+        isDef = llmEval.isDefended;
+        def = isDef ? 'Defended' : 'NOT Defended';
+        currentJsd = isDef ? 0.0 : 1.0; // Force extreme JSD to impact radar chart dynamically
+        
+        addLog(`[AEGIS] ${llmEval.reason}`, 'info');
+      } else {
+        const evalResult = evaluateDefense(res.status, data, currentAttack);
+        resultText = evalResult.res;
+        def = evalResult.def as any;
+        currentJsd = evalResult.currentJsd;
+        isDef = evalResult.isDef;
+      }
       
-      updateAttackResult(attackId, resultText, def as any);
+      updateAttackResult(attackId, resultText, def, currentJsd, latencyMs, JSON.stringify(data));
       markAttackStatus(attackId, 'DONE');
       
-      if (currentAttack.category !== 'Control') {
+      if (currentAttack && currentAttack.category !== 'Control') {
         const finalJsd = res.ok ? currentJsd : 0;
         addLog(`[STATUS] ${def.toUpperCase()}${res.ok ? ` (JSD: ${finalJsd.toFixed(3)})` : ''}`, isDef ? 'success' : 'alert');
         // Update metrics
@@ -139,11 +165,11 @@ export const TargetConfig = () => {
         setMetrics({
           ...metrics,
           jsd: newEmaJsd.toFixed(3),
-          latency: `${latencyMs}ms`,
+          latency: `0ms`,
           integrity: !isDef ? 'COMPROMISED' : 'MAINTAINED'
         });
       } else {
-        setMetrics({ ...metrics, latency: `${latencyMs}ms` });
+        setMetrics({ ...metrics, latency: `0ms` });
       }
       
     } catch (err) {
@@ -164,9 +190,10 @@ export const TargetConfig = () => {
     setIsSending(true);
     
     let attackId = activeAttack?.id;
+    let currentAttack = activeAttack;
     if (!attackId) {
       attackId = 'manual-img-' + Date.now();
-      addAttack({
+      currentAttack = {
         id: attackId,
         name: 'Manual Image: ' + imageFile.name,
         category: 'Manual Injections',
@@ -174,7 +201,8 @@ export const TargetConfig = () => {
         expectedResult: 'N/A',
         defendedStatus: 'Inconclusive',
         status: 'IDLE'
-      });
+      };
+      addAttack(currentAttack);
     }
     
     markAttackStatus(attackId, 'EXECUTING');
@@ -192,10 +220,35 @@ export const TargetConfig = () => {
       const data = await res.json().catch(() => ({}));
       addLog(`Response [${res.status}]: ${JSON.stringify(data)}`, res.ok ? 'success' : 'warning');
       
-      const currentAttack = attacks.find(a => a.id === attackId) || { category: 'Manual Injections' };
-      const { res: resultText, def, currentJsd, isDef } = evaluateDefense(res.status, data, currentAttack);
       
-      updateAttackResult(attackId, resultText, def as any);
+      
+      let resultText = '';
+      let def: any = 'Inconclusive';
+      let isDef = false;
+      let currentJsd = 0;
+      
+      if (currentAttack && currentAttack.category === 'Manual Injections' && res.ok) {
+        addLog(`Analyzing manual image response with AEGIS...`, 'info');
+        const conf = data.confidence || 0;
+        const label = data.predicted_class || data.label || 'unknown';
+        resultText = `Label: ${label} (Conf: ${conf.toFixed(2)})`;
+        
+        const payloadStr = `Filename: ${imageFile.name}\nUser Context/Goal: ${imageContext || 'None provided'}`;
+        const llmEval = await evaluateManualInjectionWithLLM(payloadStr, label, conf);
+        isDef = llmEval.isDefended;
+        def = isDef ? 'Defended' : 'NOT Defended';
+        currentJsd = isDef ? 0.0 : 1.0;
+        
+        addLog(`[AEGIS] ${llmEval.reason}`, 'info');
+      } else {
+        const evalResult = evaluateDefense(res.status, data, currentAttack);
+        resultText = evalResult.res;
+        def = evalResult.def as any;
+        currentJsd = evalResult.currentJsd;
+        isDef = evalResult.isDef;
+      }
+      
+      updateAttackResult(attackId, resultText, def, currentJsd, latencyMs, JSON.stringify(data));
       markAttackStatus(attackId, 'DONE');
       
       if (currentAttack.category !== 'Control') {
@@ -400,6 +453,17 @@ export const TargetConfig = () => {
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelect(f); }}
               />
+              
+              <div className="flex flex-col gap-1.5">
+                <label className="font-mono text-[9px] text-ui-muted tracking-widest uppercase">GROUND TRUTH / GOAL (OPTIONAL)</label>
+                <textarea
+                  className="w-full bg-surface-alt border border-ui-border p-2 text-[10px] font-mono text-ui-text focus:outline-none focus:border-ui-accent resize-none placeholder:text-ui-muted/30"
+                  rows={2}
+                  placeholder="e.g., 'Normal image of a cat' or 'Adversarial image designed to look like a toaster'"
+                  value={imageContext}
+                  onChange={(e) => setImageContext(e.target.value)}
+                />
+              </div>
 
               <SendButton onClick={handleSendImage} disabled={!imageFile} />
 
